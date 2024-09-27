@@ -15,8 +15,8 @@ def isAirport(airport_code):
 def getPDFfromURL():
 
     login_payload = {
-        'username': 'vdeenda',
-        'password': 'girijavengroh@28'
+        'username': 'dummy',
+        'password': 'dummy'
     }
     URL = 'https://onb20prd.acs.ncsu.edu/AppNet/docpop/PdfPop.aspx'
 
