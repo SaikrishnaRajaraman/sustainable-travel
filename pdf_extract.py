@@ -2,7 +2,9 @@ import pymupdf  # PyMuPDF
 import airportsdata
 import re
 import requests
+from utils.utils import calculate_ground_carbon_emission
 from collections import defaultdict
+import csv
 #Load the airports data using IATA code
 airports = airportsdata.load('IATA')
 pattern = r'\b[A-Z]{3}\b'
@@ -100,6 +102,18 @@ def extract_text_from_pdf():
 
     print(f"Total miles: {total_miles}")
     # print(dist_airports)
+
+
+def generate_ground_emission_report():
+    # Read the CSV file
+    with open('ground_travel_data.csv', mode='r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            # dollar_spent = float(row[0])
+            print(row)
+            # carbon_emission = calculate_ground_carbon_emission(dollar_spent)
+            # print(f"Dollar spent: {dollar_spent}, Carbon emission: {carbon_emission}")
+
     
 if __name__ == "__main__":
     print("Inside main")
