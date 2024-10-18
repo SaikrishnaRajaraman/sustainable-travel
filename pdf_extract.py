@@ -13,6 +13,7 @@ import csv
 from openai import OpenAI
 import json
 from dotenv import load_dotenv
+from clean_data import get_airports_from_data
 
 #Load the airports data using IATA code
 airports = airportsdata.load('IATA')
@@ -140,34 +141,37 @@ def extract_text_from_pdf(file_path):
         # for line in lines:
         #     if line.strip() and len(line) == 3:
                 # airport_codes.extend(isAirport(re.findall(pattern,line)))
-    flight_codes = send_to_LLM(lines_list)
-    print(f"flight codes for ${file_path}:",flight_codes)
-    # flight_codes = [{'from_airport': 'RDU', 'to_airport': 'CLT'}, {'from_airport': 'CLT', 'to_airport': 'SDF'}, {'from_airport': 'SDF', 'to_airport': 'CLT'}, {'from_airport': 'CLT', 'to_airport': 'RDU'}]
-    if flight_codes:
-        for flight in flight_codes:
-            # print(flight['from_airport'],flight['to_airport'])
-            if (flight['from_airport'],flight['to_airport']) in existing_airports:
-                model = existing_airports[(flight['from_airport'],flight['to_airport'])]
-                print("Already exists:",flight['from_airport'],flight['to_airport'])
-            elif (flight['to_airport'],flight['from_airport']) in existing_airports:
-                model = existing_airports[(flight['to_airport'],flight['from_airport'])]
-                print("Already exists:",(flight['to_airport'],flight['from_airport']))
-            else:
-                print('Sending to API')
-                response = requests.post(f'https://airportgap.com/api/airports/distance?from={flight['from_airport']}&to={flight['to_airport']}')
-                if response.status_code == 200:
-                    data = response.json()
-                    carbon_emission = calculate_carbon_emission(data['data']['attributes']['miles'])
-                    model = EmissionModel(flight['from_airport'],
-                                        flight['to_airport'],
-                                        data['data']['attributes']['from_airport']['latitude'],
-                                        data['data']['attributes']['to_airport']['latitude'],
-                                        data['data']['attributes']['from_airport']['longitude'],  
-                                        data['data']['attributes']['to_airport']['longitude'],
-                                        data['data']['attributes']['miles'],
-                                        carbon_emission)
-                    existing_airports[(flight['from_airport'],flight['to_airport'])] = model
-        return list(existing_airports.values())
+    # flight_codes = send_to_LLM(lines_list)
+    flight_codes = get_airports_from_data()
+    print(flight_codes)
+    # print(flight_codes)
+    # print(f"flight codes for ${file_path}:",flight_codes)
+    # # flight_codes = [{'from_airport': 'RDU', 'to_airport': 'CLT'}, {'from_airport': 'CLT', 'to_airport': 'SDF'}, {'from_airport': 'SDF', 'to_airport': 'CLT'}, {'from_airport': 'CLT', 'to_airport': 'RDU'}]
+    # if flight_codes:
+    #     for flight in flight_codes:
+    #         # print(flight['from_airport'],flight['to_airport'])
+    #         if (flight['from_airport'],flight['to_airport']) in existing_airports:
+    #             model = existing_airports[(flight['from_airport'],flight['to_airport'])]
+    #             print("Already exists:",flight['from_airport'],flight['to_airport'])
+    #         elif (flight['to_airport'],flight['from_airport']) in existing_airports:
+    #             model = existing_airports[(flight['to_airport'],flight['from_airport'])]
+    #             print("Already exists:",(flight['to_airport'],flight['from_airport']))
+    #         else:
+    #             print('Sending to API')
+    #             response = requests.post(f'https://airportgap.com/api/airports/distance?from={flight['from_airport']}&to={flight['to_airport']}')
+    #             if response.status_code == 200:
+    #                 data = response.json()
+    #                 carbon_emission = calculate_carbon_emission(data['data']['attributes']['miles'])
+    #                 model = EmissionModel(flight['from_airport'],
+    #                                     flight['to_airport'],
+    #                                     data['data']['attributes']['from_airport']['latitude'],
+    #                                     data['data']['attributes']['to_airport']['latitude'],
+    #                                     data['data']['attributes']['from_airport']['longitude'],  
+    #                                     data['data']['attributes']['to_airport']['longitude'],
+    #                                     data['data']['attributes']['miles'],
+    #                                     carbon_emission)
+    #                 existing_airports[(flight['from_airport'],flight['to_airport'])] = model
+    # return list(existing_airports.values())
         # all_emission_data.append(model)
                 
     # for i in range(len(airport_codes)-1):
