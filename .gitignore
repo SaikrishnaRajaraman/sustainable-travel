@@ -165,3 +165,9 @@ cython_debug/
 
 
 .DS_Store
+
+day_emissions_hotel.xlsx
+hotel_data.xlsx
+hotel_emissions_per_day.xlsx
+mean_hotel_emissions.csv
+nc_state_travel/
