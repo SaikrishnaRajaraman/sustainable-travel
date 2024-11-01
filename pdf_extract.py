@@ -127,6 +127,9 @@ def send_to_LLM(lines):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+def extract_works_data():
+    flight_codes = get_airports_from_data()
+
 def extract_text_from_pdf(file_path):
 
     # doc = pymupdf.open(file_path)
