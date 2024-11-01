@@ -127,7 +127,10 @@ def send_to_LLM(lines):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def extract_text_from_pdf(file_path):
+def extract_works_data():
+    flight_codes = get_airports_from_data()
+
+# def extract_text_from_pdf(file_path):
 
     # doc = pymupdf.open(file_path)
     # airport_codes = []
@@ -143,7 +146,6 @@ def extract_text_from_pdf(file_path):
         #     if line.strip() and len(line) == 3:
                 # airport_codes.extend(isAirport(re.findall(pattern,line)))
     # flight_codes = send_to_LLM(lines_list)
-    flight_codes = get_airport_pairs()
     # print(flight_codes)
     # print(f"flight codes for ${file_path}:",flight_codes)
     # # flight_codes = [{'from_airport': 'RDU', 'to_airport': 'CLT'}, {'from_airport': 'CLT', 'to_airport': 'SDF'}, {'from_airport': 'SDF', 'to_airport': 'CLT'}, {'from_airport': 'CLT', 'to_airport': 'RDU'}]
@@ -198,7 +200,7 @@ def extract_text_from_pdf(file_path):
 
 def generate_ground_emission_report():
     # Read the CSV file
-    ground_travel_dict = defaultdict(GroundTravelModel)
+    # ground_travel_dict = defaultdict(GroundTravelModel)
     with open('ground_travel_data.csv', mode='r') as file:
         reader = csv.reader(file)
         for i,row in enumerate(reader):
@@ -224,8 +226,8 @@ if __name__ == "__main__":
 
     load_dotenv(".env.development")
     #Creating Ground Travel Emission
-    ground_travel_dict = generate_ground_emission_report()
-    create_ground_emission_report(list(ground_travel_dict.values()))
+    # ground_travel_dict = generate_ground_emission_report()
+    # create_ground_emission_report(list(ground_travel_dict.values()))
     #Creating Air Travel Emission
     pdf_directory = "./pdfs"
     all_emission_data = []
@@ -234,8 +236,28 @@ if __name__ == "__main__":
     #         file_path = os.path.join(pdf_directory, filename)
     #         load_emission_data_from_csv('emission_report.csv')
     #         all_emission_data = extract_text_from_pdf(file_path)
-    load_emission_data_from_csv('emission_report.csv')
-    all_emission_data = extract_text_from_pdf("")        
-    create_emission_report(all_emission_data)
+    # load_emission_data_from_csv('emission_report.csv')
+    # all_emission_data = extract_text_from_pdf("")        
+    # create_emission_report(all_emission_data)
+    flight_codes = get_airport_pairs()
+    for trip in flight_codes:
+        if (trip['from_airport'],trip['to_airport']) in existing_airports:
+            continue
+        else:
+            response = requests.post(f'https://airportgap.com/api/airports/distance?from={trip["from_airport"]}&to={trip["to_airport"]}')
+            if response.status_code == 200:
+                data = response.json()
+                carbon_emission = calculate_carbon_emission(data['data']['attributes']['miles'])
+                print(carbon_emission)
+                model = EmissionModel(trip['from_airport'],
+                                    trip['to_airport'],
+                                    data['data']['attributes']['from_airport']['latitude'],
+                                    data['data']['attributes']['to_airport']['latitude'],
+                                    data['data']['attributes']['from_airport']['longitude'],  
+                                    data['data']['attributes']['to_airport']['longitude'],
+                                    data['data']['attributes']['miles'],
+                                    carbon_emission)
+                existing_airports[(trip['from_airport'],trip['to_airport'])] = model
+
 
     
