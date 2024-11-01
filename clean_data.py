@@ -31,5 +31,7 @@ def get_airports_from_data():
     return json.dumps(airports, indent=4)
 
 
+def get_hotels_from_data():
 
+    data = pd.read_excel('airline_data.xls', sheet_name='sheet_1')
 
