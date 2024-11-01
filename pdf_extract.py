@@ -14,6 +14,7 @@ from openai import OpenAI
 import json
 from dotenv import load_dotenv
 from clean_data import get_airports_from_data
+from compute_air_emissions import get_airport_pairs
 
 #Load the airports data using IATA code
 airports = airportsdata.load('IATA')
@@ -128,22 +129,21 @@ def send_to_LLM(lines):
 
 def extract_text_from_pdf(file_path):
 
-    doc = pymupdf.open(file_path)
-    airport_codes = []
-    airports_set_toadd = set()
-    lines_list = []
-    for page in doc:
-        # Extract text from the page
-        text = page.get_text()
-        # text = page
-        lines = ".".join(list(text.split("\n")))
-        lines_list.append(lines)
+    # doc = pymupdf.open(file_path)
+    # airport_codes = []
+    # airports_set_toadd = set()
+    # lines_list = []
+    # for page in doc:
+    #     # Extract text from the page
+    #     text = page.get_text()
+    #     # text = page
+    #     lines = ".".join(list(text.split("\n")))
+    #     lines_list.append(lines)
         # for line in lines:
         #     if line.strip() and len(line) == 3:
                 # airport_codes.extend(isAirport(re.findall(pattern,line)))
     # flight_codes = send_to_LLM(lines_list)
-    flight_codes = get_airports_from_data()
-    print(flight_codes)
+    flight_codes = get_airport_pairs()
     # print(flight_codes)
     # print(f"flight codes for ${file_path}:",flight_codes)
     # # flight_codes = [{'from_airport': 'RDU', 'to_airport': 'CLT'}, {'from_airport': 'CLT', 'to_airport': 'SDF'}, {'from_airport': 'SDF', 'to_airport': 'CLT'}, {'from_airport': 'CLT', 'to_airport': 'RDU'}]
@@ -229,11 +229,13 @@ if __name__ == "__main__":
     #Creating Air Travel Emission
     pdf_directory = "./pdfs"
     all_emission_data = []
-    for filename in os.listdir(pdf_directory):
-        if filename.endswith(".pdf"):
-            file_path = os.path.join(pdf_directory, filename)
-            load_emission_data_from_csv('emission_report.csv')
-            all_emission_data = extract_text_from_pdf(file_path)
+    # for filename in os.listdir(pdf_directory):
+    #     if filename.endswith(".pdf"):
+    #         file_path = os.path.join(pdf_directory, filename)
+    #         load_emission_data_from_csv('emission_report.csv')
+    #         all_emission_data = extract_text_from_pdf(file_path)
+    load_emission_data_from_csv('emission_report.csv')
+    all_emission_data = extract_text_from_pdf("")        
     create_emission_report(all_emission_data)
 
     
