@@ -14,7 +14,6 @@ def get_airport_pairs():
         pairs = [{"from_airport": airport_codes[i], "to_airport": airport_codes[i+1]} 
             for i in range(len(airport_codes) - 1)]
         airport_pairs.extend(pairs)
-
     return airport_pairs    
 
 # print(data)
