@@ -200,7 +200,7 @@ def extract_works_data():
 
 def generate_ground_emission_report():
     # Read the CSV file
-    # ground_travel_dict = defaultdict(GroundTravelModel)
+    ground_travel_dict = defaultdict(GroundTravelModel)
     with open('ground_travel_data.csv', mode='r') as file:
         reader = csv.reader(file)
         for i,row in enumerate(reader):
