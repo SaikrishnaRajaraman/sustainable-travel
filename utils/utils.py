@@ -9,6 +9,21 @@ def calculate_carbon_emission(miles):
     #emission = Miles*Emission/passenger-mile
     return miles * 0.160308027
 
+def calculate_new_flight_emissions(distance):
+    # Simplified quadratic function for fuel consumption (kg)
+    fuel_consumption = 0.0001 * distance**2 + 2.5 * distance + 1000
+    
+    # Convert fuel to CO2 (kg)
+    co2_emissions = fuel_consumption * 3.16
+    
+    # Assume average load factor of 80%
+    average_passengers = 200 * 0.8  # Assuming a 200-seat aircraft
+    
+    # Calculate per-passenger emissions
+    per_passenger_emissions = co2_emissions / average_passengers
+    
+    return per_passenger_emissions
+
 def calculate_ground_carbon_emission(miles):
     # For 1 mile travelled, 0.404 kgs of CO2 is emitted
     return miles * 0.404
@@ -120,7 +135,8 @@ def calculate_flight_emissions(trip):
     model = None
     if response.status_code == 200:
                 data = response.json()
-                carbon_emission = calculate_carbon_emission(data['data']['attributes']['miles'])
+                # carbon_emission = calculate_carbon_emission(data['data']['attributes']['miles'])
+                carbon_emission = calculate_new_flight_emissions(data['data']['attributes']['miles'])
                 print(carbon_emission)
                 model = EmissionModel(trip['from_airport'],
                                     trip['to_airport'],

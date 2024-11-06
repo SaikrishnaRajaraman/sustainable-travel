@@ -262,7 +262,10 @@ if __name__ == "__main__":
     hotel_emissions_data = get_hotel_data()
     create_hotel_emissions_report(hotel_emissions_data)
 
-        
 
 
-    
+# Example usage
+# distance = 1000  # km
+# airline_code = "AA"
+# emissions = calculate_flight_emissions(distance, airline_code)
+# print(f"Estimated CO2 emissions per passenger: {emissions:.2f} kg")
