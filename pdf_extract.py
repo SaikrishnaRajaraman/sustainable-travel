@@ -229,7 +229,6 @@ if __name__ == "__main__":
    
     final_emissions_data = []
 
-
     index = 0
     for trip in airports_data:
         print(f"Processing {index + 1} of {len(airports_data)} ({(index + 1) / len(airports_data) * 100:.2f}%)")
@@ -258,7 +257,10 @@ if __name__ == "__main__":
 
     create_ground_emission_report(all_ground_travel)
 
-        
 
 
-    
+# Example usage
+# distance = 1000  # km
+# airline_code = "AA"
+# emissions = calculate_flight_emissions(distance, airline_code)
+# print(f"Estimated CO2 emissions per passenger: {emissions:.2f} kg")
