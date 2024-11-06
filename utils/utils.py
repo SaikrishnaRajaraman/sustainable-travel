@@ -1,5 +1,6 @@
 from models.emission_model import EmissionModel
 from models.ground_travel_model import GroundTravelModel
+from models.hotel_emission_model import HotelEmissionModel
 import csv
 import requests
 
@@ -74,6 +75,28 @@ def create_ground_emission_report(emission: list[GroundTravelModel]):
             
 
         print(f"Ground Emission report created successfully: {file_name}")
+
+def create_hotel_emissions_report(emission: list[HotelEmissionModel]):
+    file_name = "hotel_emissions_data.csv"
+    with open(file_name, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['S.No','Hotel Name','Location','Carbon Emission'])
+        index = 0
+        # Write each emission model as a row in the CSV
+        for e in emission:
+            if e is not None:
+                 writer.writerow([ index +1,
+                e.hotel_name,
+                e.location,
+                e.carbon_emission
+            ])
+                 index += 1
+            else:
+                 print('Emission is None')     
+                 
+            
+
+        print(f"Hotel Emission report created successfully: {file_name}")
             
 # def create_airports_database(airport_codes : set):
 #     file_name = "airport_code.csv"

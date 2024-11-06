@@ -45,10 +45,7 @@ def get_airports_data_from_works_report():
 
     airports = []
     idx = 0
-    for index, row in data.iterrows():
-        # if idx == 10:
-        #     break
-        
+    for index, row in data.iterrows(): 
         origin_code = row["Air Origin Code"]
         destination_code = row["Air Destination Code"]
         airport_pair = {}
