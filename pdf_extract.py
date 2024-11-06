@@ -213,51 +213,51 @@ if __name__ == "__main__":
     # ground_travel_dict = generate_ground_emission_report()
     # create_ground_emission_report(list(ground_travel_dict.values()))
     #Creating Air Travel Emission
-    # pdf_directory = "./pdfs"
-    # all_emission_data = []
-    # existing_airports = load_emission_data_from_csv('emission_report.csv')
+    pdf_directory = "./pdfs"
+    all_emission_data = []
+    existing_airports = load_emission_data_from_csv('emission_report.csv')
    
 
-    # # # Calculating works flight data
-    # works_flight_data = extract_works_data()
+    # # Calculating works flight data
+    works_flight_data = extract_works_data()
 
-    # # # Calculating the athletics flight data
-    # athletics_flight_data = get_airports_from_athletics_data()
+    # # Calculating the athletics flight data
+    athletics_flight_data = get_airports_from_athletics_data()
 
-    # airports_data = []
-    # airports_data.extend(works_flight_data)
-    # airports_data.extend(athletics_flight_data)
+    airports_data = []
+    airports_data.extend(works_flight_data)
+    airports_data.extend(athletics_flight_data)
    
-    # final_emissions_data = []
+    final_emissions_data = []
 
 
-    # index = 0
-    # for trip in airports_data:
-    #     print(f"Processing {index + 1} of {len(airports_data)} ({(index + 1) / len(airports_data) * 100:.2f}%)")
-    #     index += 1
-    #     if (trip['from_airport'],trip['to_airport']) in existing_airports:
-    #         model = existing_airports[(trip['from_airport'],trip['to_airport'])]
-    #         final_emissions_data.append(model)
-    #     else:
-    #         model = calculate_flight_emissions(trip)
-    #         existing_airports[(trip['from_airport'],trip['to_airport'])] = model
-    #         final_emissions_data.append(model)
+    index = 0
+    for trip in airports_data:
+        print(f"Processing {index + 1} of {len(airports_data)} ({(index + 1) / len(airports_data) * 100:.2f}%)")
+        index += 1
+        if (trip['from_airport'],trip['to_airport']) in existing_airports:
+            model = existing_airports[(trip['from_airport'],trip['to_airport'])]
+            final_emissions_data.append(model)
+        else:
+            model = calculate_flight_emissions(trip)
+            existing_airports[(trip['from_airport'],trip['to_airport'])] = model
+            final_emissions_data.append(model)
 
-    # # print(final_emissions_data)
-    # create_flight_emissions_report(final_emissions_data)    
-
-
-    # # Calculating Ground Travel emissions
-
-    # all_ground_travel = []
-    # athletics_ground_travel = get_ground_travel_data_from_athletics()
-    # works_ground_travel = generate_ground_emission_report()
+    # print(final_emissions_data)
+    create_flight_emissions_report(final_emissions_data)    
 
 
-    # all_ground_travel.extend(athletics_ground_travel)
-    # all_ground_travel.extend(works_ground_travel)
+    # Calculating Ground Travel emissions
 
-    # create_ground_emission_report(all_ground_travel)
+    all_ground_travel = []
+    athletics_ground_travel = get_ground_travel_data_from_athletics()
+    works_ground_travel = generate_ground_emission_report()
+
+
+    all_ground_travel.extend(athletics_ground_travel)
+    all_ground_travel.extend(works_ground_travel)
+
+    create_ground_emission_report(all_ground_travel)
 
     hotel_emissions_data = get_hotel_data()
     create_hotel_emissions_report(hotel_emissions_data)
