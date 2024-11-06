@@ -21,7 +21,7 @@ def ground_carbon_emission(dollar_spent):
     return calculate_ground_carbon_emission(miles)
 
 
-def create_emission_report(emissions : list[EmissionModel]):
+def create_flight_emissions_report(emissions : list[EmissionModel]):
     file_name = "emission_report.csv"
     with open(file_name, mode='w', newline='') as file:
         writer = csv.writer(file)
@@ -49,14 +49,16 @@ def create_emission_report(emissions : list[EmissionModel]):
         print(f"Emission report created successfully: {file_name}")
 
 def create_ground_emission_report(emission: list[GroundTravelModel]):
-    file_name = "ground_travel_data.csv"
+    file_name = "ground_emissions_data.csv"
     with open(file_name, mode='w', newline='') as file:
         writer = csv.writer(file)
-
+        writer.writerow(['S.No','ID','Travel Begin Date','Travel End Date','Travel Category','Account','Project ID','Amount','Carbon Emission'])
+        index = 0
         # Write each emission model as a row in the CSV
         for e in emission:
-            writer.writerow([
-                e.id,
+            if e is not None:
+                 writer.writerow([ index +1,
+                e.id if e.id is not None else "",
                 e.travel_begin_date,
                 e.travel_end_date,
                 e.travel_expense_category,
@@ -65,6 +67,11 @@ def create_ground_emission_report(emission: list[GroundTravelModel]):
                 e.amount,
                 e.carbon_emission
             ])
+                 index += 1
+            else:
+                 print('Emission is None')     
+                 
+            
 
         print(f"Ground Emission report created successfully: {file_name}")
             

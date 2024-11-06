@@ -8,12 +8,13 @@ import csv
 import os
 from models.emission_model import EmissionModel
 from models.ground_travel_model import GroundTravelModel
-from utils.utils import calculate_carbon_emission, create_emission_report,create_ground_emission_report
+from utils.utils import calculate_carbon_emission, create_flight_emissions_report,create_ground_emission_report
 import csv
 from openai import OpenAI
 import json
 from dotenv import load_dotenv
 from compute_air_emissions import get_airports_from_athletics_data,get_airports_data_from_works_report
+from compute_motor_emissions_athletics import get_ground_travel_data_from_athletics,generate_ground_emission_report
 
 #Load the airports data using IATA code
 airports = airportsdata.load('IATA')
@@ -200,27 +201,7 @@ def extract_works_data():
     #             existing_airports[(airport_codes[i],airport_codes[i+1])] = model
 
 
-def generate_ground_emission_report():
-    # Read the CSV file
-    ground_travel_dict = defaultdict(GroundTravelModel)
-    with open('ground_travel_data.csv', mode='r') as file:
-        reader = csv.reader(file)
-        for i,row in enumerate(reader):
-            id = row[0].strip()
-            travel_begin_date = row[1].strip()
-            travel_end_date = row[2].strip()
-            travel_expense_category = row[3].strip()
-            account = row[4].strip()
-            project_id = row[5].strip()
-            amount = row[6].replace(',', '').strip()
-            if amount == 'AMOUNT':
-                ground_travel_dict[i] = GroundTravelModel(id, travel_begin_date, travel_end_date, travel_expense_category, account, project_id, amount, 'CARBON EMISSION')
-                continue
-            
-            dollar_spent = float(amount)
-            carbon_emission = ground_carbon_emission(dollar_spent)
-            ground_travel_dict[i] = GroundTravelModel(id, travel_begin_date, travel_end_date, travel_expense_category, account, project_id, amount, carbon_emission)
-    return ground_travel_dict
+
             # print(f"Dollar spent: {dollar_spent}, Carbon emission: {carbon_emission}")
 
     
@@ -233,16 +214,10 @@ if __name__ == "__main__":
     #Creating Air Travel Emission
     pdf_directory = "./pdfs"
     all_emission_data = []
-    # for filename in os.listdir(pdf_directory):
-    #     if filename.endswith(".pdf"):
-    #         file_path = os.path.join(pdf_directory, filename)
-    #         load_emission_data_from_csv('emission_report.csv')
-    #         all_emission_data = extract_text_from_pdf(file_path)
     existing_airports = load_emission_data_from_csv('emission_report.csv')
-    # all_emission_data = extract_text_from_pdf("")        
-    # create_emission_report(all_emission_data)
+   
 
-    # Calculating works flight data
+    # # Calculating works flight data
     works_flight_data = extract_works_data()
 
     # # Calculating the athletics flight data
@@ -251,10 +226,7 @@ if __name__ == "__main__":
     airports_data = []
     airports_data.extend(works_flight_data)
     airports_data.extend(athletics_flight_data)
-    # airport_pair = {}
-    # airport_pair["from_airport"] = "IAD"
-    # airport_pair["to_airport"] = "RDU"
-    # airports_data.append(airport_pair)
+   
     final_emissions_data = []
 
 
@@ -271,7 +243,22 @@ if __name__ == "__main__":
             final_emissions_data.append(model)
 
     # print(final_emissions_data)
-    create_emission_report(final_emissions_data)        
+    create_flight_emissions_report(final_emissions_data)    
+
+
+    # Calculating Ground Travel emissions
+
+    all_ground_travel = []
+    athletics_ground_travel = get_ground_travel_data_from_athletics()
+    works_ground_travel = generate_ground_emission_report()
+
+
+    all_ground_travel.extend(athletics_ground_travel)
+    all_ground_travel.extend(works_ground_travel)
+
+    create_ground_emission_report(all_ground_travel)
+
+        
 
 
     

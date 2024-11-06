@@ -3,13 +3,13 @@ from models.ground_travel_model import GroundTravelModel
 from utils.utils import ground_carbon_emission
 
 
-def get_airport_pairs():
+def get_ground_travel_data_from_athletics():
 
     file_path = 'nc_state_travel/NC_State_Motor_travel.xlsx'
 
     data = pd.read_excel(file_path)
 
-    airport_pairs = []
+    ground_emissions_data = []
 
     for index, row in data.iterrows():
 
@@ -18,9 +18,48 @@ def get_airport_pairs():
         #     for i in range(len(airport_codes) - 1)]
         # airport_pairs.extend(pairs)
 
+        if row['Transaction Type'] == 'Refund':
+            continue
+
+        confirmation_number = row['Confirmation Number']
+
+        if 'TIP' in confirmation_number or 'GRATUITY' in confirmation_number:
+            continue
+
         ground_model = GroundTravelModel()
         ground_model.amount = row['Total Paid']
+        ground_model.travel_begin_date = row['Start Date']
+        ground_model.travel_end_date = row['End Date']
+
         carbon_emission = ground_carbon_emission(ground_model.amount)
         ground_model.carbon_emission = carbon_emission
+        ground_emissions_data.append(ground_model)
+
         
-    return airport_pairs  
+    return ground_emissions_data
+
+
+def generate_ground_emission_report():
+
+    file_path = 'ground_travel_data.csv'
+    data = pd.read_csv(file_path)
+    # Read the CSV file
+    ground_travel_dict = []
+    
+    for i,row in data.iterrows():
+            id = row[0].strip()
+            travel_begin_date = row['TRAVEL_BEGIN_DT']
+            travel_end_date = row['TRAVEL_END_DT']
+            travel_expense_category = row['TRAVEL_EXPENSE_CATEGORY']
+            account = row['ACCOUNT']
+            project_id = row['PROJECT_ID']
+            amount = row['AMOUNT'].replace(',', '')
+            if amount == 'AMOUNT':
+                ground_travel_dict.append(GroundTravelModel(id, travel_begin_date, travel_end_date, travel_expense_category, account, project_id, amount, 'CARBON EMISSION'))
+                continue
+            
+            dollar_spent = float(amount)
+            carbon_emission = ground_carbon_emission(dollar_spent)
+            ground_travel_model = GroundTravelModel(id, travel_begin_date, travel_end_date, travel_expense_category, account, project_id, amount, carbon_emission)
+            ground_travel_dict.append(ground_travel_model) 
+    return ground_travel_dict
