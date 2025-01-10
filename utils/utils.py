@@ -27,7 +27,7 @@ def create_flight_emissions_report(emissions : list[EmissionModel]):
     with open(file_name, mode='w', newline='') as file:
         writer = csv.writer(file)
         # Write the header row
-        writer.writerow(["S.No","Source IATA Code", "Destination IATA Code", "Source Latitude", "Destination Latitude", "Source Longitude", "Destination Longitude", "Miles", "Carbon Emission"])
+        writer.writerow(["S.No","Source IATA Code", "Destination IATA Code","Flight Company","Source Latitude", "Destination Latitude", "Source Longitude", "Destination Longitude", "Miles", "Carbon Emission"])
         index = 0
         # Write each emission model as a row in the CSV
         for emission in emissions:
@@ -36,6 +36,7 @@ def create_flight_emissions_report(emissions : list[EmissionModel]):
                  writer.writerow([ index+1,
                 emission.source_iata_code,
                 emission.destination_iata_code,
+                emission.flight_company,
                 emission.latitude_source,
                 emission.latitude_destination,
                 emission.longitude_source,
@@ -80,7 +81,7 @@ def create_hotel_emissions_report(emission: list[HotelEmissionModel]):
     file_name = "hotel_emissions_data.csv"
     with open(file_name, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['S.No','Hotel Name','Location','Carbon Emission'])
+        writer.writerow(['S.No','Hotel Name','Location','Hotel Type','Carbon Emission'])
         index = 0
         # Write each emission model as a row in the CSV
         for e in emission:
@@ -88,6 +89,7 @@ def create_hotel_emissions_report(emission: list[HotelEmissionModel]):
                  writer.writerow([ index +1,
                 e.hotel_name,
                 e.location,
+                e.hotel_type,
                 e.carbon_emission
             ])
                  index += 1
@@ -124,6 +126,7 @@ def calculate_flight_emissions(trip):
                 print(carbon_emission)
                 model = EmissionModel(trip['from_airport'],
                                     trip['to_airport'],
+                                    trip['flight_company'],
                                     data['data']['attributes']['from_airport']['latitude'],
                                     data['data']['attributes']['to_airport']['latitude'],
                                     data['data']['attributes']['from_airport']['longitude'],  
