@@ -7,22 +7,50 @@ import requests
 def calculate_carbon_emission(miles):
     # For 1 passenger-mile travelled, 0.160308027 kgs of CO2 is emitted(kg)
     #emission = Miles*Emission/passenger-mile
-    return miles * 0.160308027
 
-def calculate_new_flight_emissions(distance):
-    # Simplified quadratic function for fuel consumption (kg)
-    fuel_consumption = 0.0001 * distance**2 + 2.5 * distance + 1000
+    #GCD Correction
+    kms = miles_to_kms(miles)
+
+    if kms < 550:
+        kms += 50
+    elif kms > 550 and kms < 5500:
+        kms += 100
+    elif kms > 5500:
+        kms += 125
+
+
+    fuel = calculate_fuel(kms)
+
+    #Average P/C = 82.53
+    #2024 Load Factor = 83.39
+
+    # Formula = CO2 emmissions = Fuel * (Passenger/Cargo Ratio / Total occupied seats) * Total Seats * 3.16
     
-    # Convert fuel to CO2 (kg)
-    co2_emissions = fuel_consumption * 3.16
+
+    return fuel * (82.53/83.39) * 100 * 3.16
+
+def miles_to_kms(miles):
+    kms = miles * 1.60934
+    return kms
+
+def calculate_fuel(distance):
+    distances = [125, 250, 500, 750, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000, 8500]
+    fuel_consumptions = [1683.5, 3434.5, 4550, 6132.5, 7644.5, 10535, 13306, 15994.5, 45734.5, 52412, 58824.5, 64882, 70842.5, 76714.5, 82226, 87364, 92390.5, 107440, 112934, 118340]
+
+    if distance <= distances[0]:
+        return fuel_consumptions[0]
+    elif distance >= distances[-1]:
+        return fuel_consumptions[-1]
+    else:
+        for i in range(len(distances) - 1):
+            if distances[i] <= distance < distances[i+1]:
+                x0, x1 = distances[i], distances[i+1]
+                y0, y1 = fuel_consumptions[i], fuel_consumptions[i+1]
+                return y0 + (y1 - y0) * (distance - x0) / (x1 - x0)
+
+    return 0  # This should never happen if the input is valid
+
     
-    # Assume average load factor of 80%
-    average_passengers = 200 * 0.8  # Assuming a 200-seat aircraft
-    
-    # Calculate per-passenger emissions
-    per_passenger_emissions = co2_emissions / average_passengers
-    
-    return per_passenger_emissions
 
 def calculate_ground_carbon_emission(miles):
     # For 1 mile travelled, 0.404 kgs of CO2 is emitted
@@ -42,7 +70,7 @@ def create_flight_emissions_report(emissions : list[EmissionModel]):
     with open(file_name, mode='w', newline='') as file:
         writer = csv.writer(file)
         # Write the header row
-        writer.writerow(["S.No","Source IATA Code", "Destination IATA Code", "Source Latitude", "Destination Latitude", "Source Longitude", "Destination Longitude", "Miles", "Carbon Emission"])
+        writer.writerow(["S.No","Source IATA Code", "Destination IATA Code","Flight Company","Source Latitude", "Destination Latitude", "Source Longitude", "Destination Longitude", "Miles", "Carbon Emission"])
         index = 0
         # Write each emission model as a row in the CSV
         for emission in emissions:
@@ -51,6 +79,7 @@ def create_flight_emissions_report(emissions : list[EmissionModel]):
                  writer.writerow([ index+1,
                 emission.source_iata_code,
                 emission.destination_iata_code,
+                emission.flight_company,
                 emission.latitude_source,
                 emission.latitude_destination,
                 emission.longitude_source,
@@ -95,7 +124,7 @@ def create_hotel_emissions_report(emission: list[HotelEmissionModel]):
     file_name = "hotel_emissions_data.csv"
     with open(file_name, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['S.No','Hotel Name','Location','Carbon Emission'])
+        writer.writerow(['S.No','Hotel Name','Location','Hotel Type','Carbon Emission'])
         index = 0
         # Write each emission model as a row in the CSV
         for e in emission:
@@ -103,6 +132,7 @@ def create_hotel_emissions_report(emission: list[HotelEmissionModel]):
                  writer.writerow([ index +1,
                 e.hotel_name,
                 e.location,
+                e.hotel_type,
                 e.carbon_emission
             ])
                  index += 1
@@ -135,11 +165,11 @@ def calculate_flight_emissions(trip):
     model = None
     if response.status_code == 200:
                 data = response.json()
-                # carbon_emission = calculate_carbon_emission(data['data']['attributes']['miles'])
-                carbon_emission = calculate_new_flight_emissions(data['data']['attributes']['miles'])
+                carbon_emission = calculate_carbon_emission(data['data']['attributes']['miles'])
                 print(carbon_emission)
                 model = EmissionModel(trip['from_airport'],
                                     trip['to_airport'],
+                                    trip['flight_company'],
                                     data['data']['attributes']['from_airport']['latitude'],
                                     data['data']['attributes']['to_airport']['latitude'],
                                     data['data']['attributes']['from_airport']['longitude'],  
