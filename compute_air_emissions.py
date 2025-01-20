@@ -19,7 +19,8 @@ def get_airports_from_athletics_data():
         if transaction_type == 'Refund' or transaction_type == 'Exchange':
             continue
         airport_codes = row['Routing'].split(" ")
-        pairs = [{"from_airport": airport_codes[i], "to_airport": airport_codes[i+1]} 
+        flight_company = row['Vendor Name']
+        pairs = [{"from_airport": airport_codes[i], "to_airport": airport_codes[i+1],'flight_company':flight_company} 
             for i in range(len(airport_codes) - 1)]
         airport_pairs.extend(pairs)
     return airport_pairs    
