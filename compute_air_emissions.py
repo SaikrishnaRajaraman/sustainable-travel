@@ -19,7 +19,8 @@ def get_airports_from_athletics_data():
         if transaction_type == 'Refund' or transaction_type == 'Exchange':
             continue
         airport_codes = row['Routing'].split(" ")
-        pairs = [{"from_airport": airport_codes[i], "to_airport": airport_codes[i+1]} 
+        flight_company = row['Vendor Name']
+        pairs = [{"from_airport": airport_codes[i], "to_airport": airport_codes[i+1],'flight_company':flight_company} 
             for i in range(len(airport_codes) - 1)]
         airport_pairs.extend(pairs)
     return airport_pairs    
@@ -29,7 +30,7 @@ def get_airports_from_athletics_data():
 
 def get_airports_data_from_works_report():
 
-    data = pd.read_excel("airline_data.xls", sheet_name="sheet_1")
+    data = pd.read_excel("2022-24-ncsu-pcard.xlsx", sheet_name="2022-24-ncsu-AIR")
 
     # Remove Null Air Leg
     data = data.dropna(subset=["Air Leg"])
@@ -48,9 +49,11 @@ def get_airports_data_from_works_report():
     for index, row in data.iterrows(): 
         origin_code = row["Air Origin Code"]
         destination_code = row["Air Destination Code"]
+        flight_company = row['MCC Description']
         airport_pair = {}
         airport_pair["from_airport"] = origin_code
         airport_pair["to_airport"] = destination_code
+        airport_pair['flight_company'] = flight_company
         airports.append(airport_pair)
    
     return airports
