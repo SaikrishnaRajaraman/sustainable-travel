@@ -244,24 +244,24 @@ if __name__ == "__main__":
             existing_airports[(trip['from_airport'],trip['to_airport'],trip['flight_company'])] = model
             final_emissions_data.append(model)    
 
-    # print(final_emissions_data)
+    print(final_emissions_data)
     create_flight_emissions_report(final_emissions_data)    
 
 
-    # # Calculating Ground Travel emissions
+    # Calculating Ground Travel emissions
 
-    # all_ground_travel = []
-    # athletics_ground_travel = get_ground_travel_data_from_athletics()
-    # works_ground_travel = generate_ground_emission_report()
+    all_ground_travel = []
+    athletics_ground_travel = get_ground_travel_data_from_athletics()
+    works_ground_travel = generate_ground_emission_report()
 
 
-    # all_ground_travel.extend(athletics_ground_travel)
-    # all_ground_travel.extend(works_ground_travel)
+    all_ground_travel.extend(athletics_ground_travel)
+    all_ground_travel.extend(works_ground_travel)
 
-    # create_ground_emission_report(all_ground_travel)
+    create_ground_emission_report(all_ground_travel)
 
-    # hotel_emissions_data = get_hotel_data()
-    # create_hotel_emissions_report(hotel_emissions_data)
+    hotel_emissions_data = get_hotel_data()
+    create_hotel_emissions_report(hotel_emissions_data)
 
         
 

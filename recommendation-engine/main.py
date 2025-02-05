@@ -40,7 +40,7 @@ def write_query(state: State):
 
 def queryRecords():
     print("Querying records from the database")
-    db = SQLDatabase.from_uri("postgresql+psycopg2://postgres:pass@localhost:5432/sustainabletravel")
+    db = SQLDatabase.from_uri("postgresql+psycopg2://postgres:1234@localhost:5432/sustainabletravel")
     print(db.dialect)
     print(db.get_usable_table_names())
     # res = db.run("SELECT source_iata_code FROM flight_emissions LIMIT 10;")
