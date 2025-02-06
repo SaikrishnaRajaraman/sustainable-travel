@@ -714,7 +714,7 @@ def get_hotel_data():
             emission = hotel_averages[hotel_type]
         else:
             hotel_row = mean_emissions_data[mean_emissions_data['Geography'] == location]
-            if hotel_row.empty:
+            if not hotel_row.empty:
                 emission = hotel_row[hotel_type].values
             else:
                 emission = hotel_averages[hotel_type]
