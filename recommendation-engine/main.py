@@ -41,12 +41,14 @@ def write_query(state: State):
     result = structured_llm.invoke(prompt)
     return {"query": result["query"]}
 
+
 def createDB():
     global db
     print("Assign DB to db")
     db = SQLDatabase.from_uri("postgresql+psycopg2://postgres:pass@localhost:5432/sustainabletravel")
     # print(db.dialect)
     # print(db.get_usable_table_names())
+
     # res = db.run("SELECT source_iata_code FROM flight_emissions LIMIT 10;")
     # return db
 

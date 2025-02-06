@@ -42,24 +42,26 @@ def get_ground_travel_data_from_athletics():
 def generate_ground_emission_report():
 
     file_path = 'ground_travel_data.csv'
-    data = pd.read_csv(file_path)
+    data = pd.read_excel("2022-24-ncsu-pcard.xlsx", sheet_name="2022-24-ncsu-CAR")
     # Read the CSV file
     ground_travel_dict = []
     
     for i,row in data.iterrows():
             id = row[0].strip()
-            travel_begin_date = row['TRAVEL_BEGIN_DT']
-            travel_end_date = row['TRAVEL_END_DT']
-            travel_expense_category = row['TRAVEL_EXPENSE_CATEGORY']
-            account = row['ACCOUNT']
-            project_id = row['PROJECT_ID']
-            amount = row['AMOUNT'].replace(',', '')
-            if amount == 'AMOUNT':
-                ground_travel_dict.append(GroundTravelModel(id, travel_begin_date, travel_end_date, travel_expense_category, account, project_id, amount, 'CARBON EMISSION'))
-                continue
+            travel_begin_date = row['Purchase Date']
+            travel_end_date = row['Post Date']
+            amount = row['Amount']
+            # if amount == 'AMOUNT':
+            #     ground_travel_dict.append(GroundTravelModel(id, travel_begin_date, travel_end_date, travel_expense_category, account, project_id, amount, 'CARBON EMISSION'))
+            #     continue
             
             dollar_spent = float(amount)
             carbon_emission = ground_carbon_emission(dollar_spent)
-            ground_travel_model = GroundTravelModel(id, travel_begin_date, travel_end_date, travel_expense_category, account, project_id, amount, carbon_emission)
+            ground_travel_model = GroundTravelModel()
+            ground_travel_model.id = id
+            ground_travel_model.travel_begin_date = travel_begin_date
+            ground_travel_model.travel_end_date = travel_end_date
+            ground_travel_model.amount = dollar_spent
+            ground_travel_model.carbon_emission = carbon_emission
             ground_travel_dict.append(ground_travel_model) 
     return ground_travel_dict
