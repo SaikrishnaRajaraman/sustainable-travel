@@ -87,6 +87,7 @@ def load_emission_data_from_csv(csv_file):
             for row in reader:
                 source = row['Source IATA Code']
                 destination = row['Destination IATA Code']
+                flight_company = row['Flight Company']
                 source_lat = row['Source Latitude']
                 destination_lat = row['Destination Latitude']
                 source_long = row['Source Longitude']
@@ -94,7 +95,7 @@ def load_emission_data_from_csv(csv_file):
                 miles = row['Miles']
                 carbon_emission = row['Carbon Emission']
 
-                emissions_data[(source, destination)] = EmissionModel(source, destination, source_lat, destination_lat, source_long, destination_long, miles, carbon_emission)
+                emissions_data[(source, destination)] = EmissionModel(source, destination,flight_company, source_lat, destination_lat, source_long, destination_long, miles, carbon_emission)
 
     else:
         print(f"File {csv_file} does not exist")
@@ -218,7 +219,7 @@ if __name__ == "__main__":
     existing_airports = load_emission_data_from_csv('emission_report.csv')
    
 
-    # # Calculating works flight data
+    # # # Calculating works flight data
     works_flight_data = extract_works_data()
 
     # # Calculating the athletics flight data
@@ -235,15 +236,15 @@ if __name__ == "__main__":
     for trip in airports_data:
         print(f"Processing {index + 1} of {len(airports_data)} ({(index + 1) / len(airports_data) * 100:.2f}%)")
         index += 1
-        if (trip['from_airport'],trip['to_airport']) in existing_airports:
-            model = existing_airports[(trip['from_airport'],trip['to_airport'])]
+        if (trip['from_airport'],trip['to_airport'],trip['flight_company']) in existing_airports:
+            model = existing_airports[(trip['from_airport'],trip['to_airport'],trip['flight_company'])]
             final_emissions_data.append(model)
         else:
             model = calculate_flight_emissions(trip)
-            existing_airports[(trip['from_airport'],trip['to_airport'])] = model
-            final_emissions_data.append(model)
+            existing_airports[(trip['from_airport'],trip['to_airport'],trip['flight_company'])] = model
+            final_emissions_data.append(model)    
 
-    # print(final_emissions_data)
+    print(final_emissions_data)
     create_flight_emissions_report(final_emissions_data)    
 
 
@@ -262,10 +263,7 @@ if __name__ == "__main__":
     hotel_emissions_data = get_hotel_data()
     create_hotel_emissions_report(hotel_emissions_data)
 
+        
 
 
-# Example usage
-# distance = 1000  # km
-# airline_code = "AA"
-# emissions = calculate_flight_emissions(distance, airline_code)
-# print(f"Estimated CO2 emissions per passenger: {emissions:.2f} kg")
+    
