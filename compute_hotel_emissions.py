@@ -425,22 +425,14 @@ def get_hotel_data():
             location = item["location"]
             hotel_type = item["hotel_type"]
 
-
-            try:
-                if not location:
-                    emission = hotel_averages[hotel_type]
-                else:
-                    hotel_row = mean_emissions_data[mean_emissions_data['Geography'] == location]
-                    if not hotel_row.empty:
-                        emission = hotel_row[hotel_type].values[0]
-                        if emission is None or not isinstance(emission, (int, float)) or math.isnan(emission):
-                            emission = hotel_averages[hotel_type]
-                    else:
-                        emission = hotel_averages[hotel_type]
-            except Exception as e:
-                emission = average_value        
-
-                    
+        if not location:
+            emission = hotel_averages[hotel_type]
+        else:
+            hotel_row = mean_emissions_data[mean_emissions_data['Geography'] == location]
+            if not hotel_row.empty:
+                emission = hotel_row[hotel_type].values
+            else:
+                emission = hotel_averages[hotel_type]
 
             hotel_emission_model = HotelEmissionModel()   
             hotel_emission_model.hotel_name = hotel_name
