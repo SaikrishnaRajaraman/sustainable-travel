@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaPlane, FaCar, FaHotel, FaSearch, FaLeaf, FaSun, FaMoon } from 'react-icons/fa'; // Import icons
+import { FaPlane, FaCar, FaHotel, FaSearch, FaLeaf, FaSun, FaMoon, FaMapMarkerAlt, FaBed, FaTimes } from 'react-icons/fa'; // Import icons
 import './App.css'; // Import the CSS file
 
 const TravelForm = () => {
@@ -8,34 +8,57 @@ const TravelForm = () => {
   const [result, setResult] = useState('');
   const [darkMode, setDarkMode] = useState(false); // Default to light mode
   const [itinerary, setItinerary] = useState(null); // Store parsed itinerary
+  const [loading, setLoading] = useState(false); // Loading state
+  const [error, setError] = useState(null); // Error state
+  const [selectedCard, setSelectedCard] = useState(null); // Selected card for detailed view
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
     setResult(`Traveling from ${source} to ${destination}`);
 
-    // Simulate fetching itinerary data (replace with actual API call)
-    const sampleItinerary = {
-      flights: [
-        { from: 'CLT', to: 'RDU', emissions: 20.76 },
-        { from: 'IAD', to: 'RDU', emissions: 35.91 },
-        { from: 'DCA', to: 'RDU', emissions: 36.34 },
-        { from: 'PHL', to: 'RDU', emissions: 53.98 },
-        { from: 'LGA', to: 'RDU', emissions: 68.98 },
-      ],
-      hotels: [
-        { name: 'Ramada Raleigh', emissions: 5.94 },
-        { name: 'Red Roof Inn 1090 Raleigh', emissions: 5.94 },
-        { name: 'La Quinta Raleigh NC', emissions: 5.94 },
-        { name: 'Hyatt Place Raleigh', emissions: 10.11 },
-        { name: 'Four Points Raleigh Arena', emissions: 10.11 },
-      ],
-    };
+    try {
+      // Call the Django API
+      const response = await fetch('http://localhost:8000/api/query/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          source: source,
+          destination: destination,
+        }),
+      });
 
-    setItinerary(sampleItinerary);
+      if (!response.ok) {
+        throw new Error('Failed to fetch itinerary data');
+      }
+
+      const data = await response.json(); // Parse the outer JSON
+
+      // Parse the nested JSON string in the "answer" field
+      const outerParsed = JSON.parse(data.response.answer);
+
+      // Set the itinerary data from the API response
+      setItinerary(outerParsed);
+    } catch (err) {
+      setError(err.message); // Handle errors
+    } finally {
+      setLoading(false); // Stop loading
+    }
   };
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
+  };
+
+  const handleCardClick = (cardData, type) => {
+    setSelectedCard({ ...cardData, type }); // Set the selected card for detailed view
+  };
+
+  const closeDetailedCard = () => {
+    setSelectedCard(null); // Close the detailed card view
   };
 
   return (
@@ -109,13 +132,24 @@ const TravelForm = () => {
                 required
               />
             </div>
-            <button type="submit" className="submit-button">
-              Plan Trip
+            <button type="submit" className="submit-button" disabled={loading}>
+              {loading ? 'Planning...' : 'Plan Trip'}
             </button>
           </form>
 
           {/* Result */}
           {result && <p className="result">{result}</p>}
+
+          {/* Error Message */}
+          {error && <p className="error-message">{error}</p>}
+
+          {/* Loading Screen */}
+          {loading && (
+            <div className="loading-screen">
+              <div className="loading-spinner"></div>
+              <p>Planning your trip...</p>
+            </div>
+          )}
 
           {/* Itinerary Cards */}
           {itinerary && (
@@ -123,12 +157,24 @@ const TravelForm = () => {
               {/* Flight Cards */}
               <h3>Flight Options</h3>
               <div className="cards-container">
-                {itinerary.flights.map((flight, index) => (
-                  <div key={index} className="card">
+                {itinerary.flight_options.map((flight, index) => (
+                  <div
+                    key={index}
+                    className="card flight-card"
+                    onClick={() => handleCardClick(flight, 'flight')}
+                  >
+                    <div className="card-icon">
+                      <FaPlane />
+                    </div>
                     <h4>
-                      {flight.from} → {flight.to}
+                      {flight.source} → {flight.destination}
                     </h4>
-                    <p>Carbon Emissions: {flight.emissions} kg CO₂</p>
+                    <p>
+                      <strong>Carbon Emissions:</strong> {flight.carbon_emission} kg CO₂
+                    </p>
+                    <p>
+                      <strong>Miles:</strong> {flight.miles}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -136,10 +182,25 @@ const TravelForm = () => {
               {/* Hotel Cards */}
               <h3>Hotel Options</h3>
               <div className="cards-container">
-                {itinerary.hotels.map((hotel, index) => (
-                  <div key={index} className="card">
-                    <h4>{hotel.name}</h4>
-                    <p>Carbon Emissions: {hotel.emissions} kg CO₂</p>
+                {itinerary.hotel_options.map((hotel, index) => (
+                  <div
+                    key={index}
+                    className="card hotel-card"
+                    onClick={() => handleCardClick(hotel, 'hotel')}
+                  >
+                    <div className="card-icon">
+                      <FaBed />
+                    </div>
+                    <h4>{hotel.hotel_name}</h4>
+                    <p>
+                      <FaMapMarkerAlt /> {hotel.location}
+                    </p>
+                    <p>
+                      <strong>Type:</strong> {hotel.hotel_type}
+                    </p>
+                    <p>
+                      <strong>Carbon Emissions:</strong> {hotel.carbon_emission} kg CO₂
+                    </p>
                   </div>
                 ))}
               </div>
@@ -147,6 +208,49 @@ const TravelForm = () => {
           )}
         </div>
       </section>
+
+      {/* Detailed Card View */}
+      {selectedCard && (
+        <div className="detailed-card-overlay">
+          <div className={`detailed-card ${darkMode ? 'dark-mode' : ''}`}>
+            <button className="close-button" onClick={closeDetailedCard}>
+              <FaTimes />
+            </button>
+            {selectedCard.type === 'flight' ? (
+              <>
+                <div className="card-icon">
+                  <FaPlane />
+                </div>
+                <h4>
+                  {selectedCard.source} → {selectedCard.destination}
+                </h4>
+                <p>
+                  <strong>Carbon Emissions:</strong> {selectedCard.carbon_emission} kg CO₂
+                </p>
+                <p>
+                  <strong>Miles:</strong> {selectedCard.miles}
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="card-icon">
+                  <FaBed />
+                </div>
+                <h4>{selectedCard.hotel_name}</h4>
+                <p>
+                  <FaMapMarkerAlt /> {selectedCard.location}
+                </p>
+                <p>
+                  <strong>Type:</strong> {selectedCard.hotel_type}
+                </p>
+                <p>
+                  <strong>Carbon Emissions:</strong> {selectedCard.carbon_emission} kg CO₂
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -16,7 +16,7 @@ def create_sql_query(state, question,mode):
                 "input": question,
             }
         )
-        structured_llm = llm.with_structured_output(QueryOutput)
+        structured_llm = llm.with_structured_output(QueryOutput,method="function_calling")
         result = structured_llm.invoke(prompt)
         if mode == "flight":
             state["flight_query"] = result["query"]
@@ -56,7 +56,23 @@ def process_query(source,dest):
     create_sql_query(state,question_hotel,"hotel")
     execute_query(state,"flight")
     execute_query(state,"hotel")
-    state["question"] = "Generate me an itinerary for a sustainable trip to Raleigh. In one single itinerary, include me the hotel and flight options with combined carbon emissions sorted in a scending order"
+    state["question"] = """ Generate me an itinerary for a sustainable trip to Raleigh. In one single itinerary, include me the hotel and flight options with combined carbon emissions sorted in a scending order. Give me both in the format
+    {
+    "flight_options" : [
+    { "source" : "Source",
+      "destination" : "Destination",
+      "carbon_emission" : "Emission value",
+      "miles" : "Miles"
+    }]
+    "hotel_options" : [
+        { "hotel_name" : "Name",
+          "location" : "City, State",
+          "hotel_type" : "Hotel type",
+          "carbon_emission" : "emission value"
+        }
+    ]
+    }
+    """
     # # print(state["flight_query"],state["flight_result"])
     print("State:",state.keys())   
     answer = generate_answer(state)
