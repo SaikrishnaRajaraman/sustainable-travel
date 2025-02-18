@@ -20,7 +20,9 @@ const TravelForm = () => {
 
     try {
       // Call the Django API
-      const response = await fetch(process.env.REACT_APP_API_URL, {
+      const apiUrl = import.meta.env.VITE_APP_API_URL;
+      console.log(apiUrl);
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
