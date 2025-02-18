@@ -142,8 +142,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Allow requests from your React frontend
+    "http://localhost:3001",  # Allow requests from your React frontend
     "https://sustainable-travel-planner.onrender.com",
 ]
 
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+CORS_ALLOW_CREDENTIALS = True  # If using authentication
+
+CSRF_TRUSTED_ORIGINS = ["https://sustainable-travel-planner.onrender.com"]
