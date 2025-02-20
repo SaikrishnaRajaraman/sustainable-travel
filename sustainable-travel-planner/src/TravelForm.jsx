@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
-import { FaPlane, FaCar, FaHotel, FaSearch, FaLeaf, FaSun, FaMoon, FaMapMarkerAlt, FaBed, FaTimes } from 'react-icons/fa'; // Import icons
+import React, { useState,useMemo } from 'react';
+import { FaPlane, FaCar, FaHotel, FaSearch, FaLeaf, FaSun, FaMoon, FaMapMarkerAlt, FaBed, FaTimes,FaUpload,FaCheckCircle } from 'react-icons/fa'; // Import icons
 import './App.css'; // Import the CSS file
+import { Box, Button, CardContent, IconButton, Paper, Typography } from '@mui/material';
+import { UploadFile as UploadFileIcon, Delete as DeleteIcon, InsertDriveFile as FileIcon } from '@mui/icons-material';
+import { useTheme, ThemeProvider, createTheme } from "@mui/material/styles";
+
 
 const TravelForm = () => {
   const [source, setSource] = useState('');
@@ -11,6 +15,22 @@ const TravelForm = () => {
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(null); // Error state
   const [selectedCard, setSelectedCard] = useState(null); // Selected card for detailed view
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [calculatedMiles, setCalculatedMiles] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [activeTab, setActiveTab] = useState('manual');
+
+  // Create a dynamic theme that updates on toggle
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: darkMode ? "dark" : "light",
+        },
+      }),
+    [darkMode] // Theme will update when darkMode changes
+  );
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,6 +83,79 @@ const TravelForm = () => {
     setSelectedCard(null); // Close the detailed card view
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) {
+      setError("No file selected.");
+      return;
+    }
+
+    // Validate file type (CSV or Excel)
+    const validExtensions = [".csv", ".xlsx"];
+    const fileExtension = file.name.slice(((file.name.lastIndexOf(".") - 1) >>> 0) + 2);
+    
+    if (!validExtensions.includes(`.${fileExtension.toLowerCase()}`)) {
+      setError("Invalid file type. Please upload a CSV or Excel file.");
+      return;
+    }
+
+    setUploadedFile(file);
+    setError(null);
+    console.log("File uploaded:", file.name);
+  };
+
+  const deleteFile = () => {
+    setUploadedFile(null);
+    setCalculatedMiles(null);
+    setSuccessMessage(null);
+    setError(null);
+    console.log("File deleted.");
+  };
+
+  const sendDataToBackend = async () => {
+    if (!uploadedFile) {
+      alert("Please upload a CSV file before calculating.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setCalculatedMiles(null);
+    setSuccessMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", uploadedFile);
+      const milesUrl = import.meta.env.VITE_APP_MILES_URL;
+      const response = await fetch(milesUrl, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to process CSV file.");
+      }
+
+      const data = await response.json();
+      console.log("Backend Response:", data);
+
+      if (data.results) {
+        const totalMiles = data.results.reduce((sum, route) => sum + (route.miles || 0), 0);
+        setCalculatedMiles(totalMiles);
+        setSuccessMessage("Miles successfully calculated!");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+
   return (
     <div className={`app-container ${darkMode ? 'dark-mode' : 'light-mode'}`}>
       {/* Header */}
@@ -106,41 +199,156 @@ const TravelForm = () => {
             </div>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit}>
-            <div className="input-group">
-              <label htmlFor="source">
-                <FaSearch className="input-icon" /> Source:
-              </label>
-              <input
-                type="text"
-                id="source"
-                value={source}
-                onChange={(e) => setSource(e.target.value)}
-                placeholder="Enter source"
-                required
-              />
-            </div>
-            <div className="input-group">
-              <label htmlFor="destination">
-                <FaSearch className="input-icon" /> Destination:
-              </label>
-              <input
-                type="text"
-                id="destination"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                placeholder="Enter destination"
-                required
-              />
-            </div>
-            <button type="submit" className="submit-button" disabled={loading}>
-              {loading ? 'Planning...' : 'Plan Trip'}
+          <div className="tabs">
+            <button className={activeTab === 'manual' ? 'active' : ''} onClick={() => handleTabChange('manual')}>
+              Manual Input
             </button>
-          </form>
+            <button className={activeTab === 'upload' ? 'active' : ''} onClick={() => handleTabChange('upload')}>
+              Upload File
+            </button>
+          </div>
 
+          
+
+          {activeTab === 'manual' ? (
+          <form onSubmit={handleSubmit}>
+          <div className="input-group">
+            <label htmlFor="source">
+              <FaSearch className="input-icon" /> Source:
+            </label>
+            <input
+              type="text"
+              id="source"
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              placeholder="Enter source"
+              required
+            />
+          </div>
+          <div className="input-group">
+            <label htmlFor="destination">
+              <FaSearch className="input-icon" /> Destination:
+            </label>
+            <input
+              type="text"
+              id="destination"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              placeholder="Enter destination"
+              required
+            />
+          </div>
+          <button type="submit" className="submit-button" disabled={loading}>
+            {loading ? 'Planning...' : 'Plan Trip'}
+          </button>
+        </form>
+          ) : (
+            <>
+              {!uploadedFile ? (
+                <Box mt={2} display="flex" justifyContent="center">
+                  <Button
+                    variant="contained"
+                    component="label"
+                    startIcon={<UploadFileIcon />}
+                    color="primary"
+                  >
+                    Upload CSV or Excel
+                    <input type="file" hidden accept=".csv, .xlsx" onChange={handleFileUpload} />
+                  </Button>
+                </Box>
+              ) : (
+                <Paper
+                  elevation={3}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: 2,
+                    borderRadius: 3,
+                    mt: 2,
+                    backgroundColor: theme.palette.mode === "dark" 
+                      ? theme.palette.grey[800] 
+                      : theme.palette.background.paper,
+                    color: theme.palette.mode === "dark" 
+                      ? theme.palette.grey[100] 
+                      : theme.palette.text.primary,
+                    boxShadow: theme.palette.mode === "dark" 
+                      ? "0 4px 10px rgba(255, 255, 255, 0.1)" 
+                      : "0 4px 10px rgba(0, 0, 0, 0.1)",
+                    borderLeft: `4px solid ${theme.palette.mode === "dark" ? "#3498db" : "#007bff"}`, // Accent border
+                  }}
+                >
+                  <FileIcon 
+                    sx={{ 
+                      fontSize: 40, 
+                      color: theme.palette.mode === "dark" ? "#3498db" : "primary.main" 
+                    }} 
+                  />
+                  <CardContent>
+                    <Typography 
+                      variant="subtitle1" 
+                      fontWeight="bold"
+                      sx={{
+                        color: theme.palette.mode === "dark" ? "#ffffff" : "inherit"
+                      }}
+                    >
+                      {uploadedFile.name}
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: theme.palette.mode === "dark" ? "grey.400" : "textSecondary" 
+                      }}
+                    >
+                      Size: {(uploadedFile.size / 1024).toFixed(2)} KB
+                    </Typography>
+                  </CardContent>
+                  <IconButton 
+                    onClick={deleteFile} 
+                    sx={{ 
+                      color: theme.palette.mode === "dark" ? "#e74c3c" : "error.main",
+                      "&:hover": { color: theme.palette.mode === "dark" ? "#c0392b" : "error.dark" }
+                    }}
+                  >
+                    <DeleteIcon fontSize="large" />
+                  </IconButton>
+                </Paper>
+              )}
+
+              {uploadedFile && (
+                <Box display="flex" justifyContent="center" mt={2}>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={sendDataToBackend}
+                    disabled={loading}
+                  >
+                    {loading ? 'Calculating...' : 'Calculate Miles'}
+                  </Button>
+                </Box>
+              )}
+
+            </>
+          )}
+
+          {activeTab === "upload" && (successMessage || calculatedMiles !== null) && (
+            <div className="status-container">
+              {/* Total Miles Display */}
+              {calculatedMiles !== null && (
+                <div className="miles-card">
+                  <div className="miles-header">
+                    <FaPlane className="miles-icon" />
+                    <h3>Total Flight Distance</h3>
+                  </div>
+                  <p className="miles-value">{calculatedMiles} miles</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          
           {/* Result */}
-          {result && <p className="result">{result}</p>}
+          {activeTab === 'manual' && result && <p className="result">{result}</p>}
 
           {/* Error Message */}
           {error && <p className="error-message">{error}</p>}
@@ -148,13 +356,17 @@ const TravelForm = () => {
           {/* Loading Screen */}
           {loading && (
             <div className="loading-screen">
-              <div className="loading-spinner"></div>
-              <p>Planning your trip...</p>
+              <div className="loading-box">
+                <div className="loading-spinner"></div>
+                <p className="loading-text">
+                  {activeTab === "manual" ? "Planning your trip..." : "Calculating miles..."}
+                </p>
+              </div>
             </div>
           )}
 
           {/* Itinerary Cards */}
-          {itinerary && (
+          {activeTab === 'manual' && itinerary && (
             <div className="itinerary-cards">
               {/* Flight Cards */}
               <h3>Flight Options</h3>

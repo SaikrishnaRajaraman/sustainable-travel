@@ -330,38 +330,61 @@ body {
   font-size: 16px;
 }
 
-/* Loading Screen */
+/* Fullscreen dark overlay */
 .loading-screen {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.85); /* Darker overlay for better focus */
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: white;
   z-index: 1000;
 }
 
-.loading-spinner {
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid #2ecc71;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
+/* Centered loading box with subtle shadow */
+.loading-box {
+  background: rgba(255, 255, 255, 0.1); /* Slight transparency */
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  backdrop-filter: blur(10px); /* Glassmorphism effect */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  width: 250px;
 }
 
+/* Loading Spinner - Now larger & with glow effect */
+.loading-spinner {
+  border: 5px solid rgba(255, 255, 255, 0.2);
+  border-top: 5px solid #2ecc71;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 0.8s linear infinite;
+  margin: auto;
+  box-shadow: 0 0 8px #2ecc71; /* Subtle glow */
+}
+
+/* Loading text styling */
+.loading-text {
+  margin-top: 15px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.6);
+}
+
+/* Dark Mode Support */
+.dark-mode .loading-box {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* Smooth Spinner Animation */
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Detailed Card View */
@@ -428,4 +451,262 @@ body {
   --card-text: #e0e0e0; /* Light text */
   --card-text-secondary: #a0a0a0; /* Lighter text */
   --card-icon: #2ecc71; /* Green icon */
+}
+
+/* Tab Navigation - Material Design */
+.tabs {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    width: 100%;
+    max-width: 400px;
+    background: #f9f9f9;
+    border-radius: 30px;
+    padding: 5px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Mode Tabs */
+.dark-mode .tabs {
+    background: #222; /* Dark background */
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+}
+
+/* Tab Button */
+.tabs button {
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    background: transparent;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Unselected Tab - Light Mode */
+.tabs button {
+    color: #555;
+}
+
+/* Unselected Tab - Dark Mode */
+.dark-mode .tabs button {
+    color: #bbb; /* Light gray for contrast */
+}
+
+/* Active Tab */
+.tabs button.active {
+    background: #28a745; /* Green accent */
+    color: white;
+    font-weight: bold;
+    box-shadow: 0px 2px 6px rgba(40, 167, 69, 0.3);
+    cursor: default; /* Disable pointer on active tab */
+}
+
+/* Dark Mode Active Tab */
+.dark-mode .tabs button.active {
+    background: #1e7e34;
+    color: white;
+    box-shadow: 0px 2px 6px rgba(255, 255, 255, 0.2);
+}
+
+/* Hover Effects (ONLY for unselected tabs) */
+.tabs button:not(.active):hover {
+    background: rgba(40, 167, 69, 0.1);
+    border-radius: 30px;
+}
+
+/* Dark Mode Hover Fix */
+.dark-mode .tabs button:not(.active):hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* File Upload Section */
+.file-upload {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.upload-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #28a745;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    font-size: 16px;
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark Mode Upload */
+.dark-mode .upload-label {
+    background: #1e7e34;
+    box-shadow: 0px 3px 5px rgba(255, 255, 255, 0.2);
+}
+
+.upload-label:hover {
+    background: #218838;
+    box-shadow: 0px 5px 10px rgba(40, 167, 69, 0.4);
+}
+
+.upload-icon {
+    margin-right: 10px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.uploaded-file-name {
+    text-align: center;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* Calculate Miles Button */
+.calculate-button {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 20px auto;
+    padding: 12px 18px;
+    font-size: 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark Mode Calculate Button */
+.dark-mode .calculate-button {
+    background: #0056b3;
+    box-shadow: 0px 3px 5px rgba(255, 255, 255, 0.2);
+}
+
+.calculate-button:hover {
+    background: #0056b3;
+    box-shadow: 0px 5px 10px rgba(0, 123, 255, 0.4);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+    .tabs {
+        max-width: 100%;
+        flex-direction: row;
+    }
+
+    .tabs button {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+
+    .upload-label {
+        font-size: 14px;
+        padding: 10px 15px;
+    }
+}
+
+/* Container to align success message & miles display */
+.status-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* Success Message - Green for Success */
+.success-message {
+  background-color: #e6f4ea; /* Light green */
+  color: #1e7d32; /* Darker green */
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  width: fit-content;
+  border: 1px solid #1e7d32;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Success Icon */
+.success-icon {
+  font-size: 18px;
+  color: #1e7d32;
+}
+
+/* Miles Card - Modern Flight-Themed Look */
+.miles-card {
+  background: #ffffff;
+  color: #222;
+  padding: 16px 22px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  text-align: center;
+  width: 250px;
+  transition: transform 0.2s ease-in-out;
+  border-left: 5px solid #007bff; /* Adds a visual indicator */
+}
+
+/* Dark Mode Compatibility */
+.dark-mode .miles-card {
+  background: #2c2c2c;
+  color: #f5f5f5;
+  border-left: 5px solid #3498db;
+}
+
+/* Hover Effect */
+.miles-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Header for Flight Distance */
+.miles-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 16px;
+  color: #007bff;
+}
+
+/* Dark Mode Header */
+.dark-mode .miles-header {
+  color: #3498db;
+}
+
+/* Miles Value */
+.miles-value {
+  font-size: 22px;
+  font-weight: bold;
+  color: #222;
+  margin: 0;
+}
+
+/* Dark Mode Value */
+.dark-mode .miles-value {
+  color: #f5f5f5;
+}
+
+/* Flight Icon Styling */
+.miles-icon {
+  font-size: 20px;
+  color: #007bff;
+}
+
+/* Dark Mode Icon */
+.dark-mode .miles-icon {
+  color: #3498db;
 }

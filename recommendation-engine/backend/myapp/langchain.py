@@ -4,6 +4,9 @@ from langchain.chains import create_sql_query_chain
 from langchain_openai import ChatOpenAI
 from langchain_community.tools.sql_database.tool import QuerySQLDatabaseTool
 from .text_sql_agent import State, QueryOutput, llm, db, query_prompt_template
+from .models import Airport
+from .calculate_miles import calculate_distance, DistanceUnit
+
 
 def create_sql_query(state, question,mode):
     """Generate SQL query to fetch information."""
@@ -78,4 +81,63 @@ def process_query(source,dest):
     answer = generate_answer(state)
     return answer
 
+
+def process_bulk_csv(routes):
+    """
+    Processes multiple source-destination queries from a CSV file.
+    Queries airport coordinates from the database and calculates distances.
+    """
+    results = []
+    total_miles = 0
+
+    for route in routes:
+        try:
+            source_code = route["source"]
+            destination_code = route["destination"]
+
+            if not source_code or not destination_code:
+                continue  # Skip invalid entries
+
+            # Fetch latitude & longitude from the database
+            source_airport = Airport.objects.filter(iata_code=source_code).first()
+            destination_airport = Airport.objects.filter(iata_code=destination_code).first()
+
+            if not source_airport or not destination_airport:
+                results.append({
+                    "source": source_code,
+                    "destination": destination_code,
+                    "error": "Airport coordinates not found"
+                })
+                continue
+
+            # Convert latitude & longitude to float
+            lat1, lon1 = float(source_airport.latitude), float(source_airport.longitude)
+            lat2, lon2 = float(destination_airport.latitude), float(destination_airport.longitude)
+
+            # Calculate miles using Vincenty's formula
+            distance_result = calculate_distance(
+                lat1=lat1,
+                lon1=lon1,
+                lat2=lat2,
+                lon2=lon2,
+                unit=DistanceUnit.MILES
+            )
+
+            miles = distance_result.distance
+            total_miles += miles  # Add to total miles
+
+            results.append({
+                "source": source_code,
+                "destination": destination_code,
+                "miles": miles
+            })
+
+        except Exception as e:
+            results.append({
+                "source": route.get("source"),
+                "destination": route.get("destination"),
+                "error": str(e)
+            })
+
+    return {"status": "success", "total_miles": total_miles, "results": results}
     
