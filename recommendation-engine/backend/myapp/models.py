@@ -21,14 +21,14 @@ class FlightData(models.Model):
 
 
 class Airport(models.Model):
-    airport_id = models.CharField(max_length=50, primary_key=True)  # Example: "12345"
-    iata_code = models.CharField(max_length=3, unique=True)  # Example: "JFK"
-    airport_name = models.CharField(max_length=255)
-    city = models.CharField(max_length=100)
-    country = models.CharField(max_length=100)
-    altitude = models.IntegerField(null=True, blank=True)
-    latitude = models.DecimalField(max_digits=10, decimal_places=6, db_column="latitude_decimal")
-    longitude = models.DecimalField(max_digits=10, decimal_places=6, db_column="longitude_decimal")
+    id = models.CharField(primary_key=True)  # Example: "12345"
+    iata = models.CharField(max_length=5)  # Example: "JFK"
+    icao = models.CharField(max_length=5)  # Example: "JFK"
+    airport = models.CharField(max_length=100)
+    region_name = models.CharField(max_length=100)
+    country_code = models.CharField(max_length=10)
+    latitude = models.DecimalField(max_digits=10, decimal_places=6, db_column="latitude")
+    longitude = models.DecimalField(max_digits=10, decimal_places=6, db_column="longitude")
 
 
     class Meta:

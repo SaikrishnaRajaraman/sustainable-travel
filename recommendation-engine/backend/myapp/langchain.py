@@ -99,8 +99,8 @@ def process_bulk_csv(routes):
                 continue  # Skip invalid entries
 
             # Fetch latitude & longitude from the database
-            source_airport = Airport.objects.filter(iata_code=source_code).first()
-            destination_airport = Airport.objects.filter(iata_code=destination_code).first()
+            source_airport = Airport.objects.filter(iata=source_code).first()
+            destination_airport = Airport.objects.filter(iata=destination_code).first()
 
             if not source_airport or not destination_airport:
                 results.append({
