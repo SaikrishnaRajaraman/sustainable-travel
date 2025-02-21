@@ -17,6 +17,7 @@ const TravelForm = () => {
   const [selectedCard, setSelectedCard] = useState(null); // Selected card for detailed view
   const [uploadedFile, setUploadedFile] = useState(null);
   const [calculatedMiles, setCalculatedMiles] = useState(null);
+  const [calculatedEmissions, setCalculatedEmissions] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null);
   const [activeTab, setActiveTab] = useState('manual');
 
@@ -115,42 +116,44 @@ const TravelForm = () => {
 
   const sendDataToBackend = async () => {
     if (!uploadedFile) {
-      alert("Please upload a CSV file before calculating.");
-      return;
+        alert("Please upload a CSV file before calculating.");
+        return;
     }
 
     setLoading(true);
     setError(null);
     setCalculatedMiles(null);
+    setCalculatedEmissions(null);
     setSuccessMessage(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", uploadedFile);
-      const milesUrl = import.meta.env.VITE_APP_MILES_URL;
-      const response = await fetch(milesUrl, {
-        method: "POST",
-        body: formData,
-      });
+        const formData = new FormData();
+        formData.append("file", uploadedFile);
+        const milesUrl = import.meta.env.VITE_APP_MILES_URL;
+        const response = await fetch(milesUrl, {
+            method: "POST",
+            body: formData,
+        });
 
-      if (!response.ok) {
-        throw new Error("Failed to process CSV file.");
-      }
+        if (!response.ok) {
+            throw new Error("Failed to process CSV file.");
+        }
 
-      const data = await response.json();
-      console.log("Backend Response:", data);
+        const data = await response.json();
+        console.log("Backend Response:", data);
 
-      if (data.results) {
-        const totalMiles = data.results.reduce((sum, route) => sum + (route.miles || 0), 0);
-        setCalculatedMiles(totalMiles);
-        setSuccessMessage("Miles successfully calculated!");
-      }
+        // Set total miles & total emissions directly from API response
+        if (data.status === "success") {
+            setCalculatedMiles(data.total_miles || 0);
+            setCalculatedEmissions(data.total_emissions || 0);
+            setSuccessMessage("Miles and emissions successfully calculated!");
+        }
     } catch (err) {
-      setError(err.message);
+        setError(err.message);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -331,7 +334,7 @@ const TravelForm = () => {
             </>
           )}
 
-          {activeTab === "upload" && (successMessage || calculatedMiles !== null) && (
+          {activeTab === "upload" && (successMessage || calculatedMiles !== null || calculatedEmissions !== null) && (
             <div className="status-container">
               {/* Total Miles Display */}
               {calculatedMiles !== null && (
@@ -341,6 +344,17 @@ const TravelForm = () => {
                     <h3>Total Flight Distance</h3>
                   </div>
                   <p className="miles-value">{calculatedMiles} miles</p>
+                </div>
+              )}
+
+              {/* Total Emissions Display */}
+              {calculatedEmissions !== null && (
+                <div className="emissions-card">
+                  <div className="emissions-header">
+                    <FaLeaf className="emissions-icon" />
+                    <h3>Total CO₂ Emissions</h3>
+                  </div>
+                  <p className="emissions-value">{calculatedEmissions} T CO₂</p>
                 </div>
               )}
             </div>

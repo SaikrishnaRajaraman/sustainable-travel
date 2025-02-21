@@ -614,39 +614,16 @@ input[type="file"] {
     }
 }
 
-/* Container to align success message & miles display */
 .status-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-top: 15px;
 }
 
-/* Success Message - Green for Success */
-.success-message {
-  background-color: #e6f4ea; /* Light green */
-  color: #1e7d32; /* Darker green */
-  padding: 10px 15px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: bold;
-  text-align: center;
-  width: fit-content;
-  border: 1px solid #1e7d32;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Success Icon */
-.success-icon {
-  font-size: 18px;
-  color: #1e7d32;
-}
-
-/* Miles Card - Modern Flight-Themed Look */
-.miles-card {
+/* Shared Card Styling */
+.miles-card, .emissions-card {
   background: #ffffff;
   color: #222;
   padding: 16px 22px;
@@ -655,23 +632,23 @@ input[type="file"] {
   text-align: center;
   width: 250px;
   transition: transform 0.2s ease-in-out;
-  border-left: 5px solid #007bff; /* Adds a visual indicator */
+  border-left: 5px solid #007bff;
 }
 
-/* Dark Mode Compatibility */
-.dark-mode .miles-card {
+/* Dark Mode Support */
+.dark-mode .miles-card, .dark-mode .emissions-card {
   background: #2c2c2c;
   color: #f5f5f5;
   border-left: 5px solid #3498db;
 }
 
 /* Hover Effect */
-.miles-card:hover {
+.miles-card:hover, .emissions-card:hover {
   transform: translateY(-2px);
 }
 
-/* Header for Flight Distance */
-.miles-header {
+/* Header Styling */
+.miles-header, .emissions-header {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -679,34 +656,29 @@ input[type="file"] {
   margin-bottom: 5px;
   font-weight: bold;
   font-size: 16px;
+}
+
+/* Icon Styling */
+.miles-icon, .emissions-icon {
+  font-size: 20px;
+}
+
+/* Colors for Each Section */
+.miles-icon {
   color: #007bff;
 }
 
-/* Dark Mode Header */
-.dark-mode .miles-header {
-  color: #3498db;
+.emissions-icon {
+  color: #2ecc71;
 }
 
-/* Miles Value */
-.miles-value {
+.miles-value, .emissions-value {
   font-size: 22px;
   font-weight: bold;
-  color: #222;
   margin: 0;
 }
 
-/* Dark Mode Value */
-.dark-mode .miles-value {
+/* Dark Mode Text */
+.dark-mode .miles-value, .dark-mode .emissions-value {
   color: #f5f5f5;
-}
-
-/* Flight Icon Styling */
-.miles-icon {
-  font-size: 20px;
-  color: #007bff;
-}
-
-/* Dark Mode Icon */
-.dark-mode .miles-icon {
-  color: #3498db;
 }

@@ -6,6 +6,7 @@ from langchain_community.tools.sql_database.tool import QuerySQLDatabaseTool
 from .text_sql_agent import State, QueryOutput, llm, db, query_prompt_template
 from .models import Airport
 from .calculate_miles import calculate_distance, DistanceUnit
+from .utils import get_gcd_correction,calculate_carbon_emission,kg_to_metric_ton
 
 
 def create_sql_query(state, question,mode):
@@ -89,6 +90,7 @@ def process_bulk_csv(routes):
     """
     results = []
     total_miles = 0
+    total_emissions = 0
 
     for route in routes:
         try:
@@ -124,6 +126,10 @@ def process_bulk_csv(routes):
             )
 
             miles = distance_result.distance
+            miles = get_gcd_correction(miles)
+            emissions = calculate_carbon_emission(miles)
+            emissions = kg_to_metric_ton(emissions)
+            total_emissions += emissions 
             total_miles += miles  # Add to total miles
 
             results.append({
@@ -139,5 +145,8 @@ def process_bulk_csv(routes):
                 "error": str(e)
             })
 
-    return {"status": "success", "total_miles": total_miles, "results": results}
+
+    
+
+    return {"status": "success", "total_miles": total_miles, "results": results,"total_emissions": total_emissions}
     
