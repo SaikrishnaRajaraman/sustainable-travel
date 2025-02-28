@@ -40,37 +40,53 @@ const TravelForm = () => {
     setResult(`Traveling from ${source} to ${destination}`);
 
     try {
-      // Call the Django API
-      const apiUrl = import.meta.env.VITE_APP_API_URL;
-      console.log(apiUrl);
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          source: source,
-          destination: destination,
-        }),
-      });
+        // Call the Django API
+        const response = await fetch('http://localhost:8000/api/query/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                source: source,
+                destination: destination,
+            }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch itinerary data');
-      }
+        if (!response.ok) {
+            throw new Error('Failed to fetch itinerary data');
+        }
 
-      const data = await response.json(); // Parse the outer JSON
+        const data = await response.json(); // Parse the outer JSON
 
-      // Parse the nested JSON string in the "answer" field
-      const outerParsed = JSON.parse(data.response.answer);
+        // Check if "response" and "answer" exist and are valid
+        if (!data.response || !data.response.answer) {
+            throw new Error('Invalid response format from API');
+        }
 
-      // Set the itinerary data from the API response
-      setItinerary(outerParsed);
+        // Parse the nested JSON in the "answer" field
+        const outerParsed = JSON.parse(data.response.answer);
+
+        // Validate the expected structure
+        const itinerary = {
+            type: outerParsed.type,
+            source: outerParsed.source,
+            destination: outerParsed.destination,
+            layover: outerParsed.layover || 'None',
+            airline: outerParsed.airline || [],
+            confidence: outerParsed.confidence,
+            miles: outerParsed.miles,
+            source_of_route: outerParsed.source_of_route,
+            carbon_emission: outerParsed.carbon_emission || '0.0',
+        };
+
+        // Set the itinerary data from the API response
+        setItinerary(itinerary);
     } catch (err) {
-      setError(err.message); // Handle errors
+        setError(err.message); // Handle errors
     } finally {
-      setLoading(false); // Stop loading
+        setLoading(false); // Stop loading
     }
-  };
+};
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -397,12 +413,45 @@ const TravelForm = () => {
                     <h4>
                       {flight.source} → {flight.destination}
                     </h4>
-                    <p>
-                      <strong>Carbon Emissions:</strong> {flight.carbon_emission} kg CO₂
-                    </p>
-                    <p>
-                      <strong>Miles:</strong> {flight.miles}
-                    </p>
+
+                    {flight.type && (
+                      <p>
+                        <strong>Type:</strong> {flight.type}
+                      </p>
+                    )}
+                    {flight.layover && flight.layover !== 'None' && (
+                      <p>
+                        <strong>Layover:</strong> {flight.layover}
+                      </p>
+                    )}
+                    {flight.airline && flight.airline.length > 0 && (
+                      <p>
+                        <strong>Airline(s):</strong> {flight.airline.join(', ')}
+                      </p>
+                    )}
+                    {flight.confidence && (
+                      <p>
+                        <strong>Confidence:</strong> {flight.confidence}
+                      </p>
+                    )}
+                    {flight.miles && (
+                      <p>
+                        <strong>Miles:</strong> {flight.miles}
+                      </p>
+                    )}
+                    {flight.source_of_route && (
+                      <p>
+                        <strong>Source of Route:</strong>{' '}
+                        <a href={flight.source_of_route} target="_blank" rel="noopener noreferrer">
+                          View Route
+                        </a>
+                      </p>
+                    )}
+                    {flight.carbon_emission && flight.carbon_emission !== '0.0' && (
+                      <p>
+                        <strong>Carbon Emissions:</strong> {flight.carbon_emission} kg CO₂
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
