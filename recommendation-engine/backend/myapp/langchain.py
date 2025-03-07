@@ -6,6 +6,9 @@ from langchain.chains import create_sql_query_chain
 from langchain_openai import ChatOpenAI
 from langchain_community.tools.sql_database.tool import QuerySQLDatabaseTool
 from .text_sql_agent import State, QueryOutput, llm, db, query_prompt_template
+from .models import Airport
+from .calculate_miles import calculate_distance, DistanceUnit
+from .utils import get_gcd_correction,calculate_carbon_emission,kg_to_metric_ton
 import json
 from asgiref.sync import sync_to_async
 
@@ -137,7 +140,7 @@ def create_sql_query(state: State, question: str, mode: str, source:str, dest: s
                 "input": direct_question
             })
             
-            structured_llm = llm.with_structured_output(QueryOutput)
+            structured_llm = llm.with_structured_output(QueryOutput,method="function_calling")
             result = structured_llm.invoke(prompt)
             state["flight_query"] = result["query"]
             
@@ -175,7 +178,7 @@ def create_sql_query(state: State, question: str, mode: str, source:str, dest: s
                 "input": formatted_question
             })
             
-            structured_llm = llm.with_structured_output(QueryOutput)
+            structured_llm = llm.with_structured_output(QueryOutput,method="function_calling")
             result = structured_llm.invoke(prompt)
             state["hotel_query"] = result["query"]
             execute_query_tool = QuerySQLDatabaseTool(db=db)
@@ -351,4 +354,72 @@ def generate_answer(state: State) -> dict:
             "flights": [],
             "hotels": []
         }
+
         return {"answer": error_response}
+
+def process_bulk_csv(routes):
+    """
+    Processes multiple source-destination queries from a CSV file.
+    Queries airport coordinates from the database and calculates distances.
+    """
+    results = []
+    total_miles = 0
+    total_emissions = 0
+
+    for route in routes:
+        try:
+            source_code = route["source"]
+            destination_code = route["destination"]
+
+            if not source_code or not destination_code:
+                continue  # Skip invalid entries
+
+            # Fetch latitude & longitude from the database
+            source_airport = Airport.objects.filter(iata=source_code).first()
+            destination_airport = Airport.objects.filter(iata=destination_code).first()
+
+            if not source_airport or not destination_airport:
+                results.append({
+                    "source": source_code,
+                    "destination": destination_code,
+                    "error": "Airport coordinates not found"
+                })
+                continue
+
+            # Convert latitude & longitude to float
+            lat1, lon1 = float(source_airport.latitude), float(source_airport.longitude)
+            lat2, lon2 = float(destination_airport.latitude), float(destination_airport.longitude)
+
+            # Calculate miles using Vincenty's formula
+            distance_result = calculate_distance(
+                lat1=lat1,
+                lon1=lon1,
+                lat2=lat2,
+                lon2=lon2,
+                unit=DistanceUnit.MILES
+            )
+
+            miles = distance_result.distance
+            miles = get_gcd_correction(miles)
+            emissions = calculate_carbon_emission(miles)
+            emissions = kg_to_metric_ton(emissions)
+            total_emissions += emissions 
+            total_miles += miles  # Add to total miles
+
+            results.append({
+                "source": source_code,
+                "destination": destination_code,
+                "miles": miles
+            })
+
+        except Exception as e:
+            results.append({
+                "source": route.get("source"),
+                "destination": route.get("destination"),
+                "error": str(e)
+            })
+
+
+    
+
+    return {"status": "success", "total_miles": total_miles, "results": results,"total_emissions": total_emissions}        

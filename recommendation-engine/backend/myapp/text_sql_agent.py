@@ -31,7 +31,8 @@ def createDB():
     global db
     if db is None:  # Ensure it runs only once
         print("Initializing SQL Database connection...")
-        db = SQLDatabase.from_uri("postgresql+psycopg2://postgres:pass@localhost:5432/sustainabletravel")
+        database_url = os.environ.get('DATABASE_URL')
+        db = SQLDatabase.from_uri(database_url)
     else:
         print("Database connection already initialized.")
 
