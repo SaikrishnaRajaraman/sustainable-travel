@@ -41,7 +41,10 @@ const TravelForm = () => {
 
     try {
         // Call the Django API
-        const response = await fetch('http://localhost:8000/api/query/', {
+        const apiUrl = import.meta.env.VITE_APP_API_URL;
+        console.log(apiUrl);
+
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -57,6 +60,7 @@ const TravelForm = () => {
         }
 
         const data = await response.json(); // Parse the outer JSON
+        console.log(data);
 
         // Check if "response" and "answer" exist and are valid
         if (!data.response || !data.response.answer) {
@@ -64,24 +68,27 @@ const TravelForm = () => {
         }
 
         // Parse the nested JSON in the "answer" field
-        const outerParsed = JSON.parse(data.response.answer);
+        const outerParsed = data.response.answer;
 
-        // Validate the expected structure
-        const itinerary = {
-            type: outerParsed.type,
-            source: outerParsed.source,
-            destination: outerParsed.destination,
-            layover: outerParsed.layover || 'None',
-            airline: outerParsed.airline || [],
-            confidence: outerParsed.confidence,
-            miles: outerParsed.miles,
-            source_of_route: outerParsed.source_of_route,
-            carbon_emission: outerParsed.carbon_emission || '0.0',
-        };
+        console.log(outerParsed);
+
+        // // Validate the expected structure
+        // const itinerary = {
+        //     type: outerParsed.type,
+        //     source: outerParsed.source,
+        //     destination: outerParsed.destination,
+        //     layover: outerParsed.layover || 'None',
+        //     airline: outerParsed.airline || [],
+        //     confidence: outerParsed.confidence,
+        //     miles: outerParsed.miles,
+        //     source_of_route: outerParsed.source_of_route,
+        //     carbon_emission: outerParsed.carbon_emission || '0.0',
+        // };
 
         // Set the itinerary data from the API response
-        setItinerary(itinerary);
+        setItinerary(outerParsed);
     } catch (err) {
+      console.log(err)
         setError(err.message); // Handle errors
     } finally {
         setLoading(false); // Stop loading
@@ -401,7 +408,7 @@ const TravelForm = () => {
               {/* Flight Cards */}
               <h3>Flight Options</h3>
               <div className="cards-container">
-                {itinerary.flight_options.map((flight, index) => (
+                {itinerary.flights.map((flight, index) => (
                   <div
                     key={index}
                     className="card flight-card"
@@ -443,13 +450,13 @@ const TravelForm = () => {
                       <p>
                         <strong>Source of Route:</strong>{' '}
                         <a href={flight.source_of_route} target="_blank" rel="noopener noreferrer">
-                          View Route
+                          {flight.source_of_route}
                         </a>
                       </p>
                     )}
-                    {flight.carbon_emission && flight.carbon_emission !== '0.0' && (
+                    {flight.carbon_emission !== NaN && flight.carbon_emission !== 0 && (
                       <p>
-                        <strong>Carbon Emissions:</strong> {flight.carbon_emission} kg CO₂
+                        <strong>Carbon Emissions:</strong> {flight.carbon_emission.toFixed(2)} kg CO₂
                       </p>
                     )}
                   </div>
@@ -459,7 +466,7 @@ const TravelForm = () => {
               {/* Hotel Cards */}
               <h3>Hotel Options</h3>
               <div className="cards-container">
-                {itinerary.hotel_options.map((hotel, index) => (
+                {itinerary.hotels.map((hotel, index) => (
                   <div
                     key={index}
                     className="card hotel-card"
@@ -468,16 +475,16 @@ const TravelForm = () => {
                     <div className="card-icon">
                       <FaBed />
                     </div>
-                    <h4>{hotel.hotel_name}</h4>
+                    <h4>{hotel.name}</h4>
                     <p>
                       <FaMapMarkerAlt /> {hotel.location}
                     </p>
-                    <p>
+                    {hotel.hotel_type && <p>
                       <strong>Type:</strong> {hotel.hotel_type}
-                    </p>
-                    <p>
-                      <strong>Carbon Emissions:</strong> {hotel.carbon_emission} kg CO₂
-                    </p>
+                    </p>}
+                    {hotel.carbon_emission && <p>
+                      <strong>Carbon Emissions:</strong> {hotel.carbon_emission.toFixed(2)} kg CO₂
+                    </p>}
                   </div>
                 ))}
               </div>

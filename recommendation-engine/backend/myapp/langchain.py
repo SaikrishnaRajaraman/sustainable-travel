@@ -214,7 +214,7 @@ def create_sql_query(state: State, question: str, mode: str):
                 "input": direct_question
             })
             
-            structured_llm = llm.with_structured_output(QueryOutput)
+            structured_llm = llm.with_structured_output(QueryOutput,method="function_calling")
             result = structured_llm.invoke(prompt)
             state["flight_query"] = result["query"]
             # print("direct flight query",state["flight_query"])
@@ -254,7 +254,7 @@ def create_sql_query(state: State, question: str, mode: str):
                 "input": formatted_question
             })
             
-            structured_llm = llm.with_structured_output(QueryOutput)
+            structured_llm = llm.with_structured_output(QueryOutput,method="function_calling")
             result = structured_llm.invoke(prompt)
             state["hotel_query"] = result["query"]
             
