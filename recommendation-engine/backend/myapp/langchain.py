@@ -1,110 +1,43 @@
-# import requests
-# from langchain_community.utilities import SQLDatabase
-# from langchain.chains import create_sql_query_chain
-# from langchain_openai import ChatOpenAI
-# from langchain_community.tools.sql_database.tool import QuerySQLDatabaseTool
-# from .text_sql_agent import State, QueryOutput, llm, db, query_prompt_template
-
-# def get_enhanced_table_info():
-#     base_info = db.get_table_info()
-#     routing_logic = """
-#     Special Routing Instructions:
-#     When searching for connections between source_iata_code 'A' and destination_iata_code 'B':
-
-#     1. First, check for direct routes:
-#        - Search where source_iata_code = 'A' AND destination_iata_code = 'B'
-
-#     2. If no direct routes are found, use this query template to find indirect routes:
-#         select fe1.source_iata_code,
-#         fe1.destination_iata_code as layover_dest,
-#         fe2.source_iata_code as layover_source,
-#         fe2.destination_iata_code, 
-#         fe1.flight_company,
-#         fe2.flight_company,
-#         fe1.miles+fe2.miles as total_miles,
-#         fe1.carbon_emission+fe2.carbon_emission as carbon_emission
-#         from flight_emissions fe1, flight_emissions fe2
-#         where fe1.destination_iata_code = fe2.source_iata_code
-#         and fe2.destination_iata_code != fe1.source_iata_code
-#         and fe1.source_iata_code = 'A'
-#         and fe2.destination_iata_code = 'B';
-#     """
-#     return base_info + "\n" + routing_logic
-
-# def create_sql_query(state, question,mode):
-#     """Generate SQL query to fetch information."""
-#     try:
-#         prompt = query_prompt_template.invoke(
-#             {
-#                 "dialect": db.dialect,
-#                 "top_k": 10,
-#                 "table_info": get_enhanced_table_info(),
-#                 "input": question,
-#             }
-#         )
-#         structured_llm = llm.with_structured_output(QueryOutput)
-#         result = structured_llm.invoke(prompt)
-#         print("Result",result)
-#         if mode == "flight":
-#             state["flight_query"] = result["query"]
-#         else:
-#             state["hotel_query"] = result["query"]
-#     except Exception as e:
-#         print(e)
-
-# #should run per request
-# def execute_query(state: State, mode):
-#     execute_query_tool = QuerySQLDatabaseTool(db=db)
-#     if mode == "flight":
-#         state["flight_result"] = execute_query_tool.invoke(state["flight_query"])
-#     else:
-#         state["hotel_result"] = execute_query_tool.invoke(state["hotel_query"])
-
-# #should run per request
-# def generate_answer(state: State):
-#     prompt = (
-#         "Given the following user question, corresponding SQL queries for flight and hotel, "
-#         "and SQL results, answer the user question.\n\n"
-#         f'Question: {state["question"]}\n'
-#         f'SQL Flight Query: {state["flight_query"]}\n'
-#         f'SQL Hotel Query: {state["hotel_query"]}\n'
-#         f'SQL Flight Result: {state["flight_result"]}\n'
-#         f'SQL Hotel Result: {state["hotel_result"]}\n'
-#     )
-#     response = llm.invoke(prompt)
-#     return {"answer": response.content}
-
-# def process_query(source,dest):
-#     print("inside process_query")
-#     state: State = {}
-#     question_flight = f'''
-#     Include these columns in the query: source_iata_code, destination_iata_code, airline, carbon_emission.
-# Give me the top 5 distinct routes along with airlines name of flight from {source} to {dest}. '''
-#     # question_flight = f"{flight_query_question}"
-#     question_hotel = f"Give me the top 5 hotels in {dest} sorted ascending by carbon emission"
-#     create_sql_query(state,question_flight,"flight")
-#     create_sql_query(state,question_hotel,"hotel")
-#     execute_query(state,"flight")
-#     execute_query(state,"hotel")
-#     question = '''
-# Generate me an itinerary for a sustainable trip in a table format. First include the top 10 distinct flight routes 
-# sorted by ascending order with respect to carbon emission. 
-# Then I want to know the top 5 hotels in {dest} sorted ascending by carbon emission. 
-# '''
-#     state["question"] = question
-#     # # print(state["flight_query"],state["flight_result"])
-#     print("State:",state.keys())   
-#     answer = generate_answer(state)
-#     return answer
 import requests
+import httpx
+import asyncio
 from langchain_community.utilities import SQLDatabase
 from langchain.chains import create_sql_query_chain
 from langchain_openai import ChatOpenAI
 from langchain_community.tools.sql_database.tool import QuerySQLDatabaseTool
 from .text_sql_agent import State, QueryOutput, llm, db, query_prompt_template
 import json
+from asgiref.sync import sync_to_async
 
-def get_enhanced_table_info():
+def get_enhanced_table_info_hotel(dest:str):
+    base_info = db.get_table_info()
+    routing_logic = """
+    Special Query Instructions:
+     1. For hotel queries:
+       - Sort by carbon_emission in ascending order unless specified otherwise
+       - Use appropriate LIMIT clause as specified in the question
+       - Include hotel name and carbon emission in results
+       - Convert {dest} to the corresponding city in which the airport is located.
+            - For example:
+            - RDU = 'Raleigh, NC'
+            - LAX = 'Los Angeles, CA'
+            - JFK = 'New York, NY'
+    """
+    return base_info + "\n" + routing_logic
+
+def get_hotel_various_locations():
+    base_info = db.get_table_info()
+    routing_logic = """
+    Special Query Instructions:
+     1. For hotel queries:
+       - Sort by carbon_emission in ascending order unless specified otherwise
+       - Use appropriate LIMIT clause as specified in the question
+       - Include hotel name and carbon emission in results
+       - Query for records Where location = 'Various Locations'
+    """
+    return base_info + "\n" + routing_logic
+
+def get_enhanced_table_info_flight():
     base_info = db.get_table_info()
     routing_logic = """
     Special Query Instructions:
@@ -114,14 +47,9 @@ def get_enhanced_table_info():
        - Sort by carbon_emission in ascending order unless specified otherwise
        - Use appropriate LIMIT clause as specified in the question
        - Include all requested columns in the SELECT clause
+    
        
-    2. For hotel queries:
-       - Sort by carbon_emission in ascending order unless specified otherwise
-       - Use appropriate LIMIT clause as specified in the question
-       - Include hotel name and carbon emission in results
-       - Use the correct location name while writing the location in the WHERE clause, do not include 3 letter codes
-       
-    3. When searching for routes between airports:
+    2. When searching for routes between airports:
        a) Direct routes query template:
           SELECT DISTINCT source_iata_code, destination_iata_code, 
                  flight_company as airline, carbon_emission
@@ -191,7 +119,7 @@ def suggest_alternative_routes(source: str, dest: str, llm) -> list:
         print(f"Error suggesting routes: {str(e)}")
         return []
 
-def create_sql_query(state: State, question: str, mode: str):
+def create_sql_query(state: State, question: str, mode: str, source:str, dest: str):
     """Generate SQL query to fetch information."""
     try:
         if mode == "flight":
@@ -202,18 +130,16 @@ def create_sql_query(state: State, question: str, mode: str):
                 f"Important: Ensure the query includes DISTINCT, sorts by carbon_emission ASC, "
                 f"and uses the specified LIMIT."
             )
-            
             prompt = query_prompt_template.invoke({
                 "dialect": db.dialect,
                 "top_k": 10,
-                "table_info": get_enhanced_table_info(),
+                "table_info": get_enhanced_table_info_flight(),
                 "input": direct_question
             })
             
             structured_llm = llm.with_structured_output(QueryOutput)
             result = structured_llm.invoke(prompt)
             state["flight_query"] = result["query"]
-            # print("direct flight query",state["flight_query"])
             
             # Execute direct flight query
             execute_query_tool = QuerySQLDatabaseTool(db=db)
@@ -223,13 +149,13 @@ def create_sql_query(state: State, question: str, mode: str):
                 indirect_question = (
                     f"Generate a SQL query that will find indirect flights with one layover. "
                     f"{question}\n"
-                    f"Important: Use the indirect routes template with JOIN operation."
+                    f"Important: Use the indirect routes template with JOIN operation. Make sure the new route's combined distance is comparable(within 500 miles) to direct flights."
                 )
                 
                 prompt = query_prompt_template.invoke({
                     "dialect": db.dialect,
                     "top_k": 10,
-                    "table_info": get_enhanced_table_info(),
+                    "table_info": get_enhanced_table_info_flight(),
                     "input": indirect_question
                 })
                 result = structured_llm.invoke(prompt)
@@ -242,17 +168,31 @@ def create_sql_query(state: State, question: str, mode: str):
                 f"Generate a SQL query that will {question}\n"
                 f"Important: Sort by carbon_emission ASC and use the specified LIMIT."
             )
-            
             prompt = query_prompt_template.invoke({
                 "dialect": db.dialect,
                 "top_k": 10,
-                "table_info": get_enhanced_table_info(),
+                "table_info": get_enhanced_table_info_hotel(dest),
                 "input": formatted_question
             })
             
             structured_llm = llm.with_structured_output(QueryOutput)
             result = structured_llm.invoke(prompt)
             state["hotel_query"] = result["query"]
+            execute_query_tool = QuerySQLDatabaseTool(db=db)
+            direct_results_hotel = execute_query_tool.invoke(state["hotel_query"])
+            if not direct_results_hotel or 'No results' in direct_results_hotel or direct_results_hotel.isspace():
+                print("No results found for hotel query")
+                various_locations_question =  """Find the top 5 hotels in 'Various Locations' with their carbon emissions.
+                Sort by carbon_emission in ascending order."""
+                prompt = query_prompt_template.invoke({
+                    "dialect": db.dialect,
+                    "top_k": 10,
+                    "table_info": db.get_table_info(),
+                    "input": various_locations_question
+                })
+                result = structured_llm.invoke(prompt)
+                state["hotel_query"] = result["query"]
+                print("Result query from Various Locations",state["hotel_query"])
             
     except Exception as e:
         print(f"Error in create_sql_query: {str(e)}")
@@ -278,8 +218,8 @@ def process_query(source: str, dest: str) -> dict:
         )
         
         # Generate SQL queries
-        create_sql_query(state, flight_question, "flight")
-        create_sql_query(state, hotel_question, "hotel")
+        create_sql_query(state, flight_question, "flight", source, dest)
+        create_sql_query(state, hotel_question, "hotel", source, dest)
         
         # Execute queries
         execute_query(state, "flight",source,dest)
@@ -300,6 +240,12 @@ def process_query(source: str, dest: str) -> dict:
     except Exception as e:
         print(f"Error in process_query: {str(e)}")
         return {"answer": f"An error occurred: {str(e)}"}
+
+# def process_query(source: str, dest: str) -> dict:
+#     """Synchronous wrapper for process_query_async."""
+#     import asyncio
+#     # Use asyncio.run for top-level async execution
+#     return asyncio.run(process_query_async(source, dest))
 
 def execute_query(state: State, mode: str, source: str, dest: str):
     """Execute the SQL query and store results in state."""

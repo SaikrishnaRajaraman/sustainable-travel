@@ -4,8 +4,11 @@ from rest_framework.response import Response
 from .models import FlightData
 from .serializers import FlightDataSerializer
 from rest_framework.decorators import api_view
+# from ardf.decorators import api_view
 from django.views.decorators.csrf import csrf_exempt
 from .langchain import process_query
+import asyncio
+from asgiref.sync import sync_to_async
 
 # Create your views here.
 
@@ -32,7 +35,7 @@ def langchain_query(request):
             return Response({"error": "Query is required"}, status=400)
 
         # Call the LangChain function in main.py
-        result = process_query(data["source"],data["destination"])
+        result = process_query(data["source"], data["destination"])
 
         return Response({"response": result}, status=200)
 
