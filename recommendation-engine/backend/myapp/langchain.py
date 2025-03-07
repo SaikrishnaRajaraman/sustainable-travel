@@ -164,7 +164,7 @@ def create_sql_query(state: State, question: str, mode: str, source:str, dest: s
                 result = structured_llm.invoke(prompt)
                 state["flight_query"] = result["query"]
             state["route_type"] = "direct" if direct_results and 'No results' not in direct_results and not direct_results.isspace() else "indirect"
-            
+            print("Final Flight Query",state["flight_query"])
         else:
             # Hotel query remains unchanged
             formatted_question = (
@@ -184,7 +184,6 @@ def create_sql_query(state: State, question: str, mode: str, source:str, dest: s
             execute_query_tool = QuerySQLDatabaseTool(db=db)
             direct_results_hotel = execute_query_tool.invoke(state["hotel_query"])
             if not direct_results_hotel or 'No results' in direct_results_hotel or direct_results_hotel.isspace():
-                print("No results found for hotel query")
                 various_locations_question =  """Find the top 5 hotels in 'Various Locations' with their carbon emissions.
                 Sort by carbon_emission in ascending order."""
                 prompt = query_prompt_template.invoke({
@@ -195,7 +194,7 @@ def create_sql_query(state: State, question: str, mode: str, source:str, dest: s
                 })
                 result = structured_llm.invoke(prompt)
                 state["hotel_query"] = result["query"]
-                print("Result query from Various Locations",state["hotel_query"])
+            print("Final Hotel Query",state["hotel_query"])
             
     except Exception as e:
         print(f"Error in create_sql_query: {str(e)}")
@@ -262,8 +261,9 @@ def execute_query(state: State, mode: str, source: str, dest: str):
             print("Suggesting alternate routes")
         state[f"{mode}_result"] = result
         if mode == "hotel":
-            print("Hotel query",state["hotel_query"])
             print("Hotel result",state["hotel_result"])
+        else:
+            print("Flight result",state["flight_result"])
     except Exception as e:
         print(f"Error executing {mode} query: {str(e)}")
         raise
