@@ -35,7 +35,7 @@ def langchain_query(request):
             return Response({"error": "Query is required"}, status=400)
 
         # Call the LangChain function in main.py
-        result = process_query(data["source"],data["destination"])
+        result = process_query(data["source"], data["destination"])
 
         return Response({"response": result}, status=200)
 
