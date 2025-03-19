@@ -103,5 +103,5 @@ def upload_csv_file(request):
         return Response({"error": str(e)}, status=500)
 
 def home(request):
-    return HttpResponse("Hello, world.")
+    return HttpResponse("Hello, Sustainable world.")
 
