@@ -1,10 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { FaPlane, FaCar, FaHotel, FaSearch, FaLeaf, FaSun, FaMoon, FaMapMarkerAlt, FaBed, FaTimes, FaUpload, FaCheckCircle } from 'react-icons/fa';
+import { 
+  FaPlane, FaCar, FaHotel, FaSearch, FaLeaf, FaSun, FaMoon, 
+  FaMapMarkerAlt, FaBed, FaTimes, FaUpload, FaCheckCircle, FaInfoCircle 
+} from 'react-icons/fa';
 import './App.css';
 import { Box, Button, CardContent, IconButton, Paper, Typography, Autocomplete, TextField } from '@mui/material';
 import { UploadFile as UploadFileIcon, Delete as DeleteIcon, InsertDriveFile as FileIcon } from '@mui/icons-material';
 import { useTheme, ThemeProvider, createTheme } from "@mui/material/styles";
 import { ModernSourceAutocomplete, ModernDestinationAutocomplete } from './Airportdropdown';
+
+const documentationLink = "https://docs.google.com/document/d/1XQJtfGitnU3eroQZ05l4XqRAbrhCVhYOXlyj1uyLo5k/edit?tab=t.0#heading=h.pp9o87y0cd36";
 
 const TravelForm = () => {
   const [source, setSource] = useState('');
@@ -119,7 +124,7 @@ const TravelForm = () => {
         console.log(outerParsed);
         setItinerary(outerParsed);
     } catch (err) {
-      console.log(err)
+      console.log(err);
         setError(err.message);
     } finally {
         setLoading(false);
@@ -235,281 +240,331 @@ const TravelForm = () => {
 
         {/* Travel Form Section */}
         <section className="travel-form-section">
-          <div className="travel-form-container">
-            <h2>Sustainable Travel Planner</h2>
-            <p className="subtitle">Enter your details to plan your trip</p>
+          {/* Wrapper with side notes */}
+          <div
+            className="form-and-notes"
+            style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '20px' }}
+          >
+            {/* Left Side Note */}
+            <Paper
+              elevation={3}
+              sx={{
+                flex: '1',
+                maxWidth: '250px',
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: theme.palette.mode === "dark" ? theme.palette.grey[900] : theme.palette.grey[100],
+              }}
+            >
+              <Box display="flex" alignItems="center" mb={1}>
+                <FaInfoCircle style={{ marginRight: '8px', fontSize: '1.8rem', color: theme.palette.primary.main }} />
+                <Typography variant="h6">About This Tool</Typography>
+              </Box>
+              <Typography variant="body2" mb={2}>
+                Want to know how we came up with this innovative travel planner? Learn about our research, methodology, and inspiration behind the tool.
+              </Typography>
+              <Button variant="outlined" href={documentationLink} target="_blank" rel="noopener noreferrer">
+                Learn More
+              </Button>
+            </Paper>
 
-            {/* Icons Section */}
-            <div className="icons-section">
-              <div className="icon-item">
-                <FaPlane className="icon" />
-                <span>Flights</span>
-              </div>
-              <div className="icon-item">
-                <FaCar className="icon" />
-                <span>Cars</span>
-              </div>
-              <div className="icon-item">
-                <FaHotel className="icon" />
-                <span>Hotels</span>
-              </div>
-            </div>
+            {/* Form Container */}
+            <div className="travel-form-container" style={{ flex: '2', minWidth: '300px' }}>
+              <h2>Sustainable Travel Planner</h2>
+              <p className="subtitle">Enter your details to plan your trip</p>
 
-            <div className="tabs">
-              <button className={activeTab === 'manual' ? 'active' : ''} onClick={() => handleTabChange('manual')}>
-                Manual Input
-              </button>
-              <button className={activeTab === 'upload' ? 'active' : ''} onClick={() => handleTabChange('upload')}>
-                Upload File
-              </button>
-            </div>
-
-            {activeTab === 'manual' ? (
-              <form onSubmit={handleSubmit}>
-                {/* SOURCE AIRPORT FIELD */}
-                <div className="input-group">
-                  <label htmlFor="source" className="modern-label">
-                    <FaPlane className="input-icon" /> Origin Airport
-                  </label>
-                  <ModernSourceAutocomplete 
-                    source={source} 
-                    setSource={setSource} 
-                    airportCodes={airportCodes} 
-                    airportsLoading={airportsLoading} 
-                    theme={theme} 
-                  />
+              {/* Icons Section */}
+              <div className="icons-section">
+                <div className="icon-item">
+                  <FaPlane className="icon" />
+                  <span>Flights</span>
                 </div>
-                
-                {/* DESTINATION AIRPORT FIELD */}
-                <div className="input-group">
-                  <label htmlFor="destination" className="modern-label">
-                    <FaPlane className="input-icon" style={{ transform: 'rotate(45deg)' }} /> Destination Airport
-                  </label>
-                  <ModernDestinationAutocomplete 
-                    destination={destination} 
-                    setDestination={setDestination} 
-                    airportCodes={airportCodes} 
-                    airportsLoading={airportsLoading} 
-                    theme={theme} 
-                  />
+                <div className="icon-item">
+                  <FaCar className="icon" />
+                  <span>Cars</span>
                 </div>
-                
-                <button type="submit" className="submit-button" disabled={loading}>
-                  {loading ? 'Planning...' : 'Plan Trip'}
+                <div className="icon-item">
+                  <FaHotel className="icon" />
+                  <span>Hotels</span>
+                </div>
+              </div>
+
+              <div className="tabs">
+                <button className={activeTab === 'manual' ? 'active' : ''} onClick={() => handleTabChange('manual')}>
+                  Manual Input
                 </button>
-              </form>
-            ) : (
-              <>
-                {!uploadedFile ? (
-                  <Box mt={2} display="flex" justifyContent="center">
-                    <Button
-                      variant="contained"
-                      component="label"
-                      startIcon={<UploadFileIcon />}
-                      color="primary"
-                    >
-                      Upload CSV or Excel
-                      <input type="file" hidden accept=".csv, .xlsx" onChange={handleFileUpload} />
-                    </Button>
-                  </Box>
-                ) : (
-                  <Paper
-                    elevation={3}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: 2,
-                      borderRadius: 3,
-                      mt: 2,
-                      backgroundColor: theme.palette.mode === "dark" 
-                        ? theme.palette.grey[800] 
-                        : theme.palette.background.paper,
-                      color: theme.palette.mode === "dark" 
-                        ? theme.palette.grey[100] 
-                        : theme.palette.text.primary,
-                      boxShadow: theme.palette.mode === "dark" 
-                        ? "0 4px 10px rgba(255, 255, 255, 0.1)" 
-                        : "0 4px 10px rgba(0, 0, 0, 0.1)",
-                      borderLeft: `4px solid ${theme.palette.mode === "dark" ? "#3498db" : "#007bff"}`,
-                    }}
-                  >
-                    <FileIcon 
-                      sx={{ 
-                        fontSize: 40, 
-                        color: theme.palette.mode === "dark" ? "#3498db" : "primary.main" 
-                      }} 
+                <button className={activeTab === 'upload' ? 'active' : ''} onClick={() => handleTabChange('upload')}>
+                  Upload File
+                </button>
+              </div>
+
+              {activeTab === 'manual' ? (
+                <form onSubmit={handleSubmit}>
+                  {/* SOURCE AIRPORT FIELD */}
+                  <div className="input-group">
+                    <label htmlFor="source" className="modern-label">
+                      <FaPlane className="input-icon" /> Origin Airport
+                    </label>
+                    <ModernSourceAutocomplete 
+                      source={source} 
+                      setSource={setSource} 
+                      airportCodes={airportCodes} 
+                      airportsLoading={airportsLoading} 
+                      theme={theme} 
                     />
-                    <CardContent>
-                      <Typography 
-                        variant="subtitle1" 
-                        fontWeight="bold"
-                        sx={{
-                          color: theme.palette.mode === "dark" ? "#ffffff" : "inherit"
-                        }}
+                  </div>
+                  
+                  {/* DESTINATION AIRPORT FIELD */}
+                  <div className="input-group">
+                    <label htmlFor="destination" className="modern-label">
+                      <FaPlane className="input-icon" style={{ transform: 'rotate(45deg)' }} /> Destination Airport
+                    </label>
+                    <ModernDestinationAutocomplete 
+                      destination={destination} 
+                      setDestination={setDestination} 
+                      airportCodes={airportCodes} 
+                      airportsLoading={airportsLoading} 
+                      theme={theme} 
+                    />
+                  </div>
+                  
+                  <button type="submit" className="submit-button" disabled={loading}>
+                    {loading ? 'Planning...' : 'Plan Trip'}
+                  </button>
+                </form>
+              ) : (
+                <>
+                  {!uploadedFile ? (
+                    <Box mt={2} display="flex" justifyContent="center">
+                      <Button
+                        variant="contained"
+                        component="label"
+                        startIcon={<UploadFileIcon />}
+                        color="primary"
                       >
-                        {uploadedFile.name}
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: theme.palette.mode === "dark" ? "grey.400" : "textSecondary" 
-                        }}
-                      >
-                        Size: {(uploadedFile.size / 1024).toFixed(2)} KB
-                      </Typography>
-                    </CardContent>
-                    <IconButton 
-                      onClick={deleteFile} 
-                      sx={{ 
-                        color: theme.palette.mode === "dark" ? "#e74c3c" : "error.main",
-                        "&:hover": { color: theme.palette.mode === "dark" ? "#c0392b" : "error.dark" }
+                        Upload CSV or Excel
+                        <input type="file" hidden accept=".csv, .xlsx" onChange={handleFileUpload} />
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Paper
+                      elevation={3}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: 2,
+                        borderRadius: 3,
+                        mt: 2,
+                        backgroundColor: theme.palette.mode === "dark" 
+                          ? theme.palette.grey[800] 
+                          : theme.palette.background.paper,
+                        color: theme.palette.mode === "dark" 
+                          ? theme.palette.grey[100] 
+                          : theme.palette.text.primary,
+                        boxShadow: theme.palette.mode === "dark" 
+                          ? "0 4px 10px rgba(255, 255, 255, 0.1)" 
+                          : "0 4px 10px rgba(0, 0, 0, 0.1)",
+                        borderLeft: `4px solid ${theme.palette.mode === "dark" ? "#3498db" : "#007bff"}`,
                       }}
                     >
-                      <DeleteIcon fontSize="large" />
-                    </IconButton>
-                  </Paper>
-                )}
+                      <FileIcon 
+                        sx={{ 
+                          fontSize: 40, 
+                          color: theme.palette.mode === "dark" ? "#3498db" : "primary.main" 
+                        }} 
+                      />
+                      <CardContent>
+                        <Typography 
+                          variant="subtitle1" 
+                          fontWeight="bold"
+                          sx={{
+                            color: theme.palette.mode === "dark" ? "#ffffff" : "inherit"
+                          }}
+                        >
+                          {uploadedFile.name}
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: theme.palette.mode === "dark" ? "grey.400" : "textSecondary" 
+                          }}
+                        >
+                          Size: {(uploadedFile.size / 1024).toFixed(2)} KB
+                        </Typography>
+                      </CardContent>
+                      <IconButton 
+                        onClick={deleteFile} 
+                        sx={{ 
+                          color: theme.palette.mode === "dark" ? "#e74c3c" : "error.main",
+                          "&:hover": { color: theme.palette.mode === "dark" ? "#c0392b" : "error.dark" }
+                        }}
+                      >
+                        <DeleteIcon fontSize="large" />
+                      </IconButton>
+                    </Paper>
+                  )}
 
-                {uploadedFile && (
-                  <Box display="flex" justifyContent="center" mt={2}>
-                    <Button
-                      variant="contained"
-                      color="success"
-                      onClick={sendDataToBackend}
-                      disabled={loading}
-                    >
-                      {loading ? 'Calculating...' : 'Calculate Miles'}
-                    </Button>
-                  </Box>
-                )}
-              </>
-            )}
+                  {uploadedFile && (
+                    <Box display="flex" justifyContent="center" mt={2}>
+                      <Button
+                        variant="contained"
+                        color="success"
+                        onClick={sendDataToBackend}
+                        disabled={loading}
+                      >
+                        {loading ? 'Calculating...' : 'Calculate Miles'}
+                      </Button>
+                    </Box>
+                  )}
+                </>
+              )}
 
-            {activeTab === "upload" && (successMessage || calculatedMiles !== null || calculatedEmissions !== null) && (
-              <div className="status-container">
-                {calculatedMiles !== null && (
-                  <div className="miles-card">
-                    <div className="miles-header">
-                      <FaPlane className="miles-icon" />
-                      <h3>Total Flight Distance</h3>
-                    </div>
-                    <p className="miles-value">{calculatedMiles} miles</p>
-                  </div>
-                )}
-
-                {calculatedEmissions !== null && (
-                  <div className="emissions-card">
-                    <div className="emissions-header">
-                      <FaLeaf className="emissions-icon" />
-                      <h3>Total CO₂ Emissions</h3>
-                    </div>
-                    <p className="emissions-value">{calculatedEmissions} T CO₂</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'manual' && result && <p className="result">{result}</p>}
-
-            {error && <p className="error-message">{error}</p>}
-
-            {loading && (
-              <div className="loading-screen">
-                <div className="loading-box">
-                  <div className="loading-spinner"></div>
-                  <p className="loading-text">
-                    {activeTab === "manual" ? "Planning your trip..." : "Calculating miles..."}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'manual' && itinerary && (
-              <div className="itinerary-cards">
-                <h3>Flight Options</h3>
-                <div className="cards-container">
-                  {itinerary.flights.map((flight, index) => (
-                    <div
-                      key={index}
-                      className="card flight-card"
-                      onClick={() => handleCardClick(flight, 'flight')}
-                    >
-                      <div className="card-icon">
-                        <FaPlane />
+              {activeTab === "upload" && (successMessage || calculatedMiles !== null || calculatedEmissions !== null) && (
+                <div className="status-container">
+                  {calculatedMiles !== null && (
+                    <div className="miles-card">
+                      <div className="miles-header">
+                        <FaPlane className="miles-icon" />
+                        <h3>Total Flight Distance</h3>
                       </div>
-                      <h4>
-                        {flight.source} → {flight.destination}
-                      </h4>
-
-                      {flight.type && (
-                        <p>
-                          <strong>Type:</strong> {flight.type}
-                        </p>
-                      )}
-                      {flight.layover && flight.layover !== 'None' && (
-                        <p>
-                          <strong>Layover:</strong> {flight.layover}
-                        </p>
-                      )}
-                      {flight.airline && (
-                        <p>
-                          <strong>Airline(s):</strong> {Array.isArray(flight.airline) ? flight.airline.join(', ') : flight.airline}
-                        </p>
-                      )}
-                      {flight.confidence && (
-                        <p>
-                          <strong>Confidence:</strong> {flight.confidence}
-                        </p>
-                      )}
-                      {flight.miles && (
-                        <p>
-                          <strong>Miles:</strong> {flight.miles}
-                        </p>
-                      )}
-                      {flight.source_of_route && (
-                        <p>
-                          <strong>Source of Route:</strong>{' '}
-                          <a href={flight.source_of_route} target="_blank" rel="noopener noreferrer">
-                            {flight.source_of_route}
-                          </a>
-                        </p>
-                      )}
-                      {flight.carbon_emission !== NaN && flight.carbon_emission !== 0 && (
-                        <p>
-                          <strong>Carbon Emissions:</strong> {flight.carbon_emission.toFixed(2)} kg CO₂
-                        </p>
-                      )}
+                      <p className="miles-value">{calculatedMiles} miles</p>
                     </div>
-                  ))}
-                </div>
+                  )}
 
-                <h3>Hotel Options</h3>
-                <div className="cards-container">
-                  {itinerary.hotels.map((hotel, index) => (
-                    <div
-                      key={index}
-                      className="card hotel-card"
-                      onClick={() => handleCardClick(hotel, 'hotel')}
-                    >
-                      <div className="card-icon">
-                        <FaBed />
+                  {calculatedEmissions !== null && (
+                    <div className="emissions-card">
+                      <div className="emissions-header">
+                        <FaLeaf className="emissions-icon" />
+                        <h3>Total CO₂ Emissions</h3>
                       </div>
-                      <h4>{hotel.name}</h4>
-                      <p>
-                        <FaMapMarkerAlt /> {hotel.location}
-                      </p>
-                      {hotel.hotel_type && <p>
-                        <strong>Type:</strong> {hotel.hotel_type}
-                      </p>}
-                      {hotel.carbon_emission && <p>
-                        <strong>Carbon Emissions:</strong> {hotel.carbon_emission.toFixed(2)} kg CO₂
-                      </p>}
+                      <p className="emissions-value">{calculatedEmissions} T CO₂</p>
                     </div>
-                  ))}
+                  )}
                 </div>
-              </div>
-            )}
+              )}
+
+              {activeTab === 'manual' && result && <p className="result">{result}</p>}
+
+              {error && <p className="error-message">{error}</p>}
+
+              {loading && (
+                <div className="loading-screen">
+                  <div className="loading-box">
+                    <div className="loading-spinner"></div>
+                    <p className="loading-text">
+                      {activeTab === "manual" ? "Planning your trip..." : "Calculating miles..."}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'manual' && itinerary && (
+                <div className="itinerary-cards">
+                  <h3>Flight Options</h3>
+                  <div className="cards-container">
+                    {itinerary.flights.map((flight, index) => (
+                      <div
+                        key={index}
+                        className="card flight-card"
+                        onClick={() => handleCardClick(flight, 'flight')}
+                      >
+                        <div className="card-icon">
+                          <FaPlane />
+                        </div>
+                        <h4>
+                          {flight.source} → {flight.destination}
+                        </h4>
+
+                        {flight.type && (
+                          <p>
+                            <strong>Type:</strong> {flight.type}
+                          </p>
+                        )}
+                        {flight.layover && flight.layover !== 'None' && (
+                          <p>
+                            <strong>Layover:</strong> {flight.layover}
+                          </p>
+                        )}
+                        {flight.airline && (
+                          <p>
+                            <strong>Airline(s):</strong> {Array.isArray(flight.airline) ? flight.airline.join(', ') : flight.airline}
+                          </p>
+                        )}
+                        {flight.confidence && (
+                          <p>
+                            <strong>Confidence:</strong> {flight.confidence}
+                          </p>
+                        )}
+                        {flight.miles && (
+                          <p>
+                            <strong>Miles:</strong> {flight.miles}
+                          </p>
+                        )}
+                        {flight.source_of_route && (
+                          <p>
+                            <strong>Source of Route:</strong>{' '}
+                            <a href={flight.source_of_route} target="_blank" rel="noopener noreferrer">
+                              {flight.source_of_route}
+                            </a>
+                          </p>
+                        )}
+                        {flight.carbon_emission !== NaN && flight.carbon_emission !== 0 && (
+                          <p>
+                            <strong>Carbon Emissions:</strong> {flight.carbon_emission.toFixed(2)} kg CO₂
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <h3>Hotel Options</h3>
+                  <div className="cards-container">
+                    {itinerary.hotels.map((hotel, index) => (
+                      <div
+                        key={index}
+                        className="card hotel-card"
+                        onClick={() => handleCardClick(hotel, 'hotel')}
+                      >
+                        <div className="card-icon">
+                          <FaBed />
+                        </div>
+                        <h4>{hotel.name}</h4>
+                        <p>
+                          <FaMapMarkerAlt /> {hotel.location}
+                        </p>
+                        {hotel.hotel_type && <p>
+                          <strong>Type:</strong> {hotel.hotel_type}
+                        </p>}
+                        {hotel.carbon_emission && <p>
+                          <strong>Carbon Emissions:</strong> {hotel.carbon_emission.toFixed(2)} kg CO₂
+                        </p>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Side Note */}
+            <Paper
+              elevation={3}
+              sx={{
+                flex: '1',
+                maxWidth: '250px',
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: theme.palette.mode === "dark" ? theme.palette.grey[900] : theme.palette.grey[100],
+              }}
+            >
+              <Box display="flex" alignItems="center" mb={1}>
+                <FaInfoCircle style={{ marginRight: '8px', fontSize: '1.8rem', color: theme.palette.secondary.main }} />
+                <Typography variant="h6">Disclaimer</Typography>
+              </Box>
+              <Typography variant="body2">
+                Please note that some recommendations are generated by AI and might not always be 100% accurate. Verify critical details before finalizing your plans.
+              </Typography>
+            </Paper>
           </div>
         </section>
 
