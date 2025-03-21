@@ -682,3 +682,20 @@ input[type="file"] {
 .dark-mode .miles-value, .dark-mode .emissions-value {
   color: #f5f5f5;
 }
+
+.modern-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-color);
+  transition: color 0.3s ease;
+}
+
+.dark-mode .modern-label {
+  color: var(--dark-text-color);
+}
+
+.input-group {
+  margin-bottom: 16px;
+}

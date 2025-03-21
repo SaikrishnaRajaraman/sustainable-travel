@@ -422,4 +422,28 @@ def process_bulk_csv(routes):
 
     
 
-    return {"status": "success", "total_miles": total_miles, "results": results,"total_emissions": total_emissions}        
+    return {"status": "success", "total_miles": total_miles, "results": results,"total_emissions": total_emissions} 
+
+
+def get_airport_iata_codes():
+    """
+    Retrieves a list of all non-empty airport IATA codes from the database.
+    
+    Returns:
+        dict: A dictionary with status and list of valid IATA codes
+    """
+    try:
+        # Fetch only the IATA codes, filtering out null/empty values
+        airports = Airport.objects.exclude(iata__isnull=True).exclude(iata="").values_list('iata', flat=True)
+        
+        # Convert QuerySet to list
+        iata_codes = list(airports)
+        
+        return {
+            "status": "success", 
+            "count": len(iata_codes), 
+            "iata_codes": iata_codes
+        }
+        
+    except Exception as e:
+        return {"status": "error", "message": str(e)}

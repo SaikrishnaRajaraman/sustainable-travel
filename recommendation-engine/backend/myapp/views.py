@@ -5,7 +5,7 @@ from .models import FlightData,Airport
 from .serializers import FlightDataSerializer
 from rest_framework.decorators import api_view, parser_classes
 from django.views.decorators.csrf import csrf_exempt
-from .langchain import process_query,process_bulk_csv
+from .langchain import process_query,process_bulk_csv,get_airport_iata_codes
 from rest_framework.parsers import MultiPartParser
 import pandas as pd
 from .calculate_miles import calculate_distance, DistanceUnit
@@ -101,6 +101,23 @@ def upload_csv_file(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+    
+
+@csrf_exempt
+@api_view(['GET'])
+def airports(request):
+
+    try:
+        result = get_airport_iata_codes()
+        return Response({"response": result}, status=200)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+
+
+
 
 def home(request):
     return HttpResponse("Hello, Sustainable world.")
