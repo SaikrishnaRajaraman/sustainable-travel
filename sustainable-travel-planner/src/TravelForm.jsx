@@ -452,9 +452,9 @@ const TravelForm = () => {
                           <strong>Layover:</strong> {flight.layover}
                         </p>
                       )}
-                      {flight.airline && flight.airline.length > 0 && (
+                      {flight.airline && (
                         <p>
-                          <strong>Airline(s):</strong> {flight.airline.join(', ')}
+                          <strong>Airline(s):</strong> {Array.isArray(flight.airline) ? flight.airline.join(', ') : flight.airline}
                         </p>
                       )}
                       {flight.confidence && (
