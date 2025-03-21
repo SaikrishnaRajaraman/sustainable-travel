@@ -9,6 +9,7 @@ from .langchain import process_query,process_bulk_csv,get_airport_iata_codes
 from rest_framework.parsers import MultiPartParser
 import pandas as pd
 from .calculate_miles import calculate_distance, DistanceUnit
+from .cache import clear_route_cache
 
 # Create your views here.
 
@@ -28,20 +29,32 @@ class FlightDataViewSet(viewsets.ModelViewSet):
 @csrf_exempt
 @api_view(['POST'])
 def langchain_query(request):
+    """
+    Process a query for flights from source to destination
+    
+    Request body:
+        {
+            "source": "Source airport code",
+            "dest": "Destination airport code",
+            "force_refresh": false  # Optional, default is false
+        }
+    """
     try:
-        data = request.data  # DRF handles JSON parsing automatically
+        data = request.data
         print(data)
-        if not data:
-            return Response({"error": "Query is required"}, status=400)
-
-        # Call the LangChain function in main.py
-        result = process_query(data["source"], data["destination"])
-
-        return Response({"response": result}, status=200)
-
+        source = data.get('source', '')
+        dest = data.get('destination', '')
+        force_refresh = data.get('force_refresh', False)
+        
+        if not source or not dest:
+            return Response({"error": "Source and destination are required"}, status=400)
+        
+        # Process the query with optional force refresh
+        result = process_query(source, dest, force_refresh=force_refresh)
+        
+        return Response(result)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
-    
 
 @csrf_exempt
 @api_view(['POST'])
@@ -118,6 +131,37 @@ def airports(request):
 
 
 
+
+@csrf_exempt
+@api_view(['POST'])
+def clear_cache(request):
+    """
+    Clear cached route data
+    
+    Request body:
+        {
+            "source": "Source airport code",  # Optional
+            "dest": "Destination airport code"  # Optional
+        }
+    
+    If neither source nor dest is provided, all route caches will be cleared.
+    If only source is provided, all routes from that source will be cleared.
+    If only dest is provided, all routes to that destination will be cleared.
+    If both are provided, only the specific route will be cleared.
+    """
+    try:
+        data = request.data
+        source = data.get('source', None)
+        dest = data.get('dest', None)
+        
+        deleted_count = clear_route_cache(source, dest)
+        
+        if deleted_count > 0:
+            return Response({"message": f"Successfully cleared {deleted_count} cache entries"})
+        else:
+            return Response({"message": "No cache entries found matching the criteria"})
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 
 def home(request):
     return HttpResponse("Hello, Sustainable world.")

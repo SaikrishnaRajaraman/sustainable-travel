@@ -11,6 +11,7 @@ from .calculate_miles import calculate_distance, DistanceUnit
 from .utils import get_gcd_correction,calculate_carbon_emission,kg_to_metric_ton
 import json
 from asgiref.sync import sync_to_async
+from .cache import cache_route_results, get_cache, set_cache, get_route_cache_key, clear_route_cache
 
 def get_enhanced_table_info_hotel(dest:str):
     base_info = db.get_table_info()
@@ -81,6 +82,7 @@ def get_enhanced_table_info_flight():
     """
     return base_info + "\n" + routing_logic
 
+@cache_route_results
 def suggest_alternative_routes(source: str, dest: str, llm) -> list:
     """Use LLM to suggest possible flight routes when none found in database."""
     suggestion_prompt = f"""
@@ -200,8 +202,18 @@ def create_sql_query(state: State, question: str, mode: str, source:str, dest: s
         print(f"Error in create_sql_query: {str(e)}")
         raise
 
+@cache_route_results
 def process_query(source: str, dest: str) -> dict:
-    """Process flight and hotel queries and generate an itinerary."""
+    """
+    Process a query for flights from source to destination
+    
+    Args:
+        source (str): Source airport code
+        dest (str): Destination airport code
+        
+    Returns:
+        dict: Query results
+    """
     try:
         state: State = {}
         
@@ -242,12 +254,6 @@ def process_query(source: str, dest: str) -> dict:
     except Exception as e:
         print(f"Error in process_query: {str(e)}")
         return {"answer": f"An error occurred: {str(e)}"}
-
-# def process_query(source: str, dest: str) -> dict:
-#     """Synchronous wrapper for process_query_async."""
-#     import asyncio
-#     # Use asyncio.run for top-level async execution
-#     return asyncio.run(process_query_async(source, dest))
 
 def execute_query(state: State, mode: str, source: str, dest: str):
     """Execute the SQL query and store results in state."""

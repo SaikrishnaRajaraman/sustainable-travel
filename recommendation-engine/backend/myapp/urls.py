@@ -11,6 +11,6 @@ urlpatterns = [
     path("", views.home, name="home"),
     path('api/', include(router.urls)),
     path('api/query/', views.langchain_query, name='query'),
-    path('api/calculatemiles/',views.upload_csv_file, name='calculatemiles'),
+    path('api/calculatemiles/',views.upload_csv_file, name='calculatemiles')
     path('api/airports/',views.airports,name='airports')
 ]
