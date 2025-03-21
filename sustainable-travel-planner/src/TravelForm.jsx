@@ -111,11 +111,11 @@ const TravelForm = () => {
         const data = await response.json();
         console.log(data);
 
-        if (!data.response || !data.response.answer) {
+        if (!data.answer) {
             throw new Error('Invalid response format from API');
         }
 
-        const outerParsed = data.response.answer;
+        const outerParsed = data.answer;
         console.log(outerParsed);
         setItinerary(outerParsed);
     } catch (err) {
