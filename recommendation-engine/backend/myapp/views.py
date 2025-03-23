@@ -125,6 +125,7 @@ def airports(request):
         return Response({"response": result}, status=200)
 
     except Exception as e:
+        print(e)
         return Response({"error": str(e)}, status=500)
 
 
