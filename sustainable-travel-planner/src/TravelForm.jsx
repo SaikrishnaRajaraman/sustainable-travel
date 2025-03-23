@@ -28,6 +28,17 @@ const TravelForm = () => {
   const [airportCodes, setAirportCodes] = useState([]);
   const [airportsLoading, setAirportsLoading] = useState(false);
 
+  // Determine whether to show the Upload tab based on an environment variable
+  const showUploadTab = import.meta.env.VITE_APP_SHOW_UPLOAD_TAB === "true";
+
+  // Force activeTab to manual if upload tab is disabled
+  useEffect(() => {
+    if (!showUploadTab) {
+      console.log(showUploadTab)
+      setActiveTab('manual');
+    }
+  }, [showUploadTab, activeTab]);
+
   // Create a dynamic theme that updates on toggle
   const theme = useMemo(
     () =>
@@ -94,40 +105,40 @@ const TravelForm = () => {
     setResult(`Traveling from ${source} to ${destination}`);
 
     try {
-        // Call the Django API
-        const apiUrl = import.meta.env.VITE_APP_API_URL;
-        console.log(apiUrl);
+      // Call the Django API
+      const apiUrl = import.meta.env.VITE_APP_API_URL;
+      console.log(apiUrl);
 
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                source: source,
-                destination: destination,
-            }),
-        });
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          source: source,
+          destination: destination,
+        }),
+      });
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch itinerary data');
-        }
+      if (!response.ok) {
+        throw new Error('Failed to fetch itinerary data');
+      }
 
-        const data = await response.json();
-        console.log(data);
+      const data = await response.json();
+      console.log(data);
 
-        if (!data.answer) {
-            throw new Error('Invalid response format from API');
-        }
+      if (!data.answer) {
+        throw new Error('Invalid response format from API');
+      }
 
-        const outerParsed = data.answer;
-        console.log(outerParsed);
-        setItinerary(outerParsed);
+      const outerParsed = data.answer;
+      console.log(outerParsed);
+      setItinerary(outerParsed);
     } catch (err) {
       console.log(err);
-        setError(err.message);
+      setError(err.message);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -174,8 +185,8 @@ const TravelForm = () => {
 
   const sendDataToBackend = async () => {
     if (!uploadedFile) {
-        alert("Please upload a CSV file before calculating.");
-        return;
+      alert("Please upload a CSV file before calculating.");
+      return;
     }
 
     setLoading(true);
@@ -185,30 +196,30 @@ const TravelForm = () => {
     setSuccessMessage(null);
 
     try {
-        const formData = new FormData();
-        formData.append("file", uploadedFile);
-        const milesUrl = import.meta.env.VITE_APP_MILES_URL;
-        const response = await fetch(milesUrl, {
-            method: "POST",
-            body: formData,
-        });
+      const formData = new FormData();
+      formData.append("file", uploadedFile);
+      const milesUrl = import.meta.env.VITE_APP_MILES_URL;
+      const response = await fetch(milesUrl, {
+        method: "POST",
+        body: formData,
+      });
 
-        if (!response.ok) {
-            throw new Error("Failed to process CSV file.");
-        }
+      if (!response.ok) {
+        throw new Error("Failed to process CSV file.");
+      }
 
-        const data = await response.json();
-        console.log("Backend Response:", data);
+      const data = await response.json();
+      console.log("Backend Response:", data);
 
-        if (data.status === "success") {
-            setCalculatedMiles(data.total_miles || 0);
-            setCalculatedEmissions(data.total_emissions || 0);
-            setSuccessMessage("Miles and emissions successfully calculated!");
-        }
+      if (data.status === "success") {
+        setCalculatedMiles(data.total_miles || 0);
+        setCalculatedEmissions(data.total_emissions || 0);
+        setSuccessMessage("Miles and emissions successfully calculated!");
+      }
     } catch (err) {
-        setError(err.message);
+      setError(err.message);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -280,25 +291,23 @@ const TravelForm = () => {
                   <span>Flights</span>
                 </div>
                 <div className="icon-item">
-                  <FaCar className="icon" />
-                  <span>Cars</span>
-                </div>
-                <div className="icon-item">
                   <FaHotel className="icon" />
                   <span>Hotels</span>
                 </div>
               </div>
 
-              <div className="tabs">
+              {showUploadTab && (<div className="tabs">
                 <button className={activeTab === 'manual' ? 'active' : ''} onClick={() => handleTabChange('manual')}>
                   Manual Input
                 </button>
-                <button className={activeTab === 'upload' ? 'active' : ''} onClick={() => handleTabChange('upload')}>
-                  Upload File
-                </button>
-              </div>
+                {showUploadTab && (
+                  <button className={activeTab === 'upload' ? 'active' : ''} onClick={() => handleTabChange('upload')}>
+                    Upload File
+                  </button>
+                )}
+              </div>)}
 
-              {activeTab === 'manual' ? (
+              {(activeTab === 'manual' || !showUploadTab) ? (
                 <form onSubmit={handleSubmit}>
                   {/* SOURCE AIRPORT FIELD */}
                   <div className="input-group">
@@ -418,30 +427,6 @@ const TravelForm = () => {
                     </Box>
                   )}
                 </>
-              )}
-
-              {activeTab === "upload" && (successMessage || calculatedMiles !== null || calculatedEmissions !== null) && (
-                <div className="status-container">
-                  {calculatedMiles !== null && (
-                    <div className="miles-card">
-                      <div className="miles-header">
-                        <FaPlane className="miles-icon" />
-                        <h3>Total Flight Distance</h3>
-                      </div>
-                      <p className="miles-value">{calculatedMiles} miles</p>
-                    </div>
-                  )}
-
-                  {calculatedEmissions !== null && (
-                    <div className="emissions-card">
-                      <div className="emissions-header">
-                        <FaLeaf className="emissions-icon" />
-                        <h3>Total CO₂ Emissions</h3>
-                      </div>
-                      <p className="emissions-value">{calculatedEmissions} T CO₂</p>
-                    </div>
-                  )}
-                </div>
               )}
 
               {activeTab === 'manual' && result && <p className="result">{result}</p>}
