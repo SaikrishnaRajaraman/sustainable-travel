@@ -23,8 +23,10 @@ def calculate_carbon_emission(miles):
     elif kms > 5500:
         kms += 125
 
+    nautical_miles = kms_to_nautical_miles(kms)    
 
-    fuel = calculate_fuel(kms)
+
+    fuel = calculate_fuel(nautical_miles)
 
     #Average P/C = 82.53
     #2024 Load Factor = 83.39
@@ -32,7 +34,11 @@ def calculate_carbon_emission(miles):
     # Formula = CO2 emmissions = Fuel * (Passenger/Cargo Ratio / Total occupied seats) * Total Seats * 3.16
     
 
-    return fuel * (82.53/83.39) * 100 * 3.16
+    return fuel * (82.53/0.8339) * 3.16
+
+
+def kms_to_nautical_miles(kms):
+    return kms * 0.539957  # or kms / 1.852
 
 def miles_to_kms(miles):
     kms = miles * 1.60934

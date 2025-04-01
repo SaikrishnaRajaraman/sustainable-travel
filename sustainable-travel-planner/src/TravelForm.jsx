@@ -479,41 +479,25 @@ const TravelForm = () => {
                     {itinerary.flights.map((flight, index) => (
                       <div
                         key={index}
-                        className="card flight-card"
+                        className={`card flight-card ${index === 0 ? 'highlight-card' : ''}`}
                         onClick={() => handleCardClick(flight, 'flight')}
                       >
+                        {index === 0 && (
+                          <div className="badge most-sustainable-badge">Most Sustainable</div>
+                        )}
                         <div className="card-icon">
                           <FaPlane />
                         </div>
-                        <h4>
-                          {flight.source} → {flight.destination}
-                        </h4>
-
-                        {flight.type && (
-                          <p>
-                            <strong>Type:</strong> {flight.type}
-                          </p>
-                        )}
+                        <h4>{flight.source} → {flight.destination}</h4>
+                        {flight.type && <p><strong>Type:</strong> {flight.type}</p>}
                         {flight.layover && flight.layover !== 'None' && (
-                          <p>
-                            <strong>Layover:</strong> {flight.layover}
-                          </p>
+                          <p><strong>Layover:</strong> {flight.layover}</p>
                         )}
                         {flight.airline && (
-                          <p>
-                            <strong>Airline(s):</strong> {Array.isArray(flight.airline) ? flight.airline.join(', ') : flight.airline}
-                          </p>
+                          <p><strong>Airline(s):</strong> {Array.isArray(flight.airline) ? flight.airline.join(', ') : flight.airline}</p>
                         )}
-                        {flight.confidence && (
-                          <p>
-                            <strong>Confidence:</strong> {flight.confidence}
-                          </p>
-                        )}
-                        {flight.miles && (
-                          <p>
-                            <strong>Miles:</strong> {flight.miles}
-                          </p>
-                        )}
+                        {flight.confidence && <p><strong>Confidence:</strong> {flight.confidence}</p>}
+                        {flight.miles && <p><strong>Miles:</strong> {flight.miles}</p>}
                         {flight.source_of_route && (
                           <p>
                             <strong>Source of Route:</strong>{' '}
@@ -523,9 +507,7 @@ const TravelForm = () => {
                           </p>
                         )}
                         {flight.carbon_emission !== NaN && flight.carbon_emission !== 0 && (
-                          <p>
-                            <strong>Carbon Emissions:</strong> {(flight.carbon_emission / 1e4).toFixed(2)} kg CO₂
-                          </p>
+                          <p><strong>Carbon Emissions:</strong> {(flight.carbon_emission / 1e4).toFixed(2)} kg CO₂</p>
                         )}
                       </div>
                     ))}
@@ -536,22 +518,19 @@ const TravelForm = () => {
                     {itinerary.hotels.map((hotel, index) => (
                       <div
                         key={index}
-                        className="card hotel-card"
+                        className={`card hotel-card ${index === 0 ? 'highlight-card' : ''}`}
                         onClick={() => handleCardClick(hotel, 'hotel')}
                       >
+                        {index === 0 && (
+                          <div className="badge most-sustainable-badge">Most Sustainable</div>
+                        )}
                         <div className="card-icon">
                           <FaBed />
                         </div>
                         <h4>{hotel.name}</h4>
-                        <p>
-                          <FaMapMarkerAlt /> {hotel.location}
-                        </p>
-                        {hotel.hotel_type && <p>
-                          <strong>Type:</strong> {hotel.hotel_type}
-                        </p>}
-                        {hotel.carbon_emission && <p>
-                          <strong>Carbon Emissions:</strong> {hotel.carbon_emission.toFixed(2)} kg CO₂
-                        </p>}
+                        <p><FaMapMarkerAlt /> {hotel.location}</p>
+                        {hotel.hotel_type && <p><strong>Type:</strong> {hotel.hotel_type}</p>}
+                        {hotel.carbon_emission && <p><strong>Carbon Emissions:</strong> {hotel.carbon_emission.toFixed(2)} kg CO₂</p>}
                       </div>
                     ))}
                   </div>

@@ -699,3 +699,22 @@ input[type="file"] {
 .input-group {
   margin-bottom: 16px;
 }
+
+.badge.most-sustainable-badge {
+  background-color: #2ecc71;
+  color: white;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+.highlight-card {
+  border: 2px solid #2ecc71;
+  position: relative;
+}
