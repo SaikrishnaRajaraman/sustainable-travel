@@ -429,6 +429,34 @@ const TravelForm = () => {
                 </>
               )}
 
+            {activeTab === "upload" && (successMessage || calculatedMiles !== null || calculatedEmissions !== null) && (
+            <div className="status-container">
+              {/* Total Miles Display */}
+              {calculatedMiles !== null && (
+                <div className="miles-card">
+                  <div className="miles-header">
+                    <FaPlane className="miles-icon" />
+                    <h3>Total Flight Distance</h3>
+                  </div>
+                  <p className="miles-value">{calculatedMiles} miles</p>
+                </div>
+              )}
+
+              {/* Total Emissions Display */}
+              {calculatedEmissions !== null && (
+                <div className="emissions-card">
+                  <div className="emissions-header">
+                    <FaLeaf className="emissions-icon" />
+                    <h3>Total CO₂ Emissions</h3>
+                  </div>
+                  <p className="emissions-value">{calculatedEmissions} T CO₂</p>
+                </div>
+              )}
+            </div>
+          )}
+
+
+
               {activeTab === 'manual' && result && <p className="result">{result}</p>}
 
               {error && <p className="error-message">{error}</p>}
@@ -496,7 +524,7 @@ const TravelForm = () => {
                         )}
                         {flight.carbon_emission !== NaN && flight.carbon_emission !== 0 && (
                           <p>
-                            <strong>Carbon Emissions:</strong> {flight.carbon_emission.toFixed(2)} kg CO₂
+                            <strong>Carbon Emissions:</strong> {(flight.carbon_emission / 1e4).toFixed(2)} kg CO₂
                           </p>
                         )}
                       </div>

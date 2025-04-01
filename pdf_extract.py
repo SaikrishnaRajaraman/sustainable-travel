@@ -240,9 +240,15 @@ if __name__ == "__main__":
             model = existing_airports[(trip['from_airport'],trip['to_airport'],trip['flight_company'])]
             final_emissions_data.append(model)
         else:
-            model = calculate_flight_emissions(trip)
-            existing_airports[(trip['from_airport'],trip['to_airport'],trip['flight_company'])] = model
-            final_emissions_data.append(model)    
+            if trip['from_airport'] and trip['to_airport'] :
+                model = calculate_flight_emissions(trip)
+                if model:
+                    existing_airports[(trip['from_airport'],trip['to_airport'],trip['flight_company'])] = model
+                    final_emissions_data.append(model)
+
+                 
+
+               
 
     print(final_emissions_data)
     create_flight_emissions_report(final_emissions_data)    
