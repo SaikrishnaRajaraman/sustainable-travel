@@ -530,7 +530,7 @@ const TravelForm = () => {
                         <h4>{hotel.name}</h4>
                         <p><FaMapMarkerAlt /> {hotel.location}</p>
                         {hotel.hotel_type && <p><strong>Type:</strong> {hotel.hotel_type}</p>}
-                        {hotel.carbon_emission && <p><strong>Carbon Emissions:</strong> {hotel.carbon_emission.toFixed(2)} kg CO₂</p>}
+                        {hotel.carbon_emission && <p><strong>Carbon Emissions:</strong> {hotel.carbon_emission.toFixed(2)} kg CO₂ / day</p>}
                       </div>
                     ))}
                   </div>
@@ -575,7 +575,7 @@ const TravelForm = () => {
                     {selectedCard.source} → {selectedCard.destination}
                   </h4>
                   <p>
-                    <strong>Carbon Emissions:</strong> {selectedCard.carbon_emission} kg CO₂
+                    <strong>Carbon Emissions:</strong> {(selectedCard.carbon_emission / 1e4).toFixed(2)} kg CO₂
                   </p>
                   <p>
                     <strong>Miles:</strong> {selectedCard.miles}
@@ -594,7 +594,7 @@ const TravelForm = () => {
                     <strong>Type:</strong> {selectedCard.hotel_type}
                   </p>
                   <p>
-                    <strong>Carbon Emissions:</strong> {selectedCard.carbon_emission} kg CO₂
+                    <strong>Carbon Emissions:</strong> {selectedCard.carbon_emission.toFixed(2)} kg CO₂ / day
                   </p>
                 </>
               )}
