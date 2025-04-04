@@ -12,11 +12,11 @@ REDIS_DB = int(os.environ.get('REDIS_DB', 0))
 CACHE_EXPIRY = int(os.environ.get('CACHE_EXPIRY', 86400))  # Default: 24 hours
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
 
-redis_client = redis.Redis.from_url(
-    REDIS_URL
-)
+# redis_client = redis.Redis.from_url(
+#     REDIS_URL
+# )
 #to run locally
-# redis_client = redis.Redis(host='localhost', port=6379)
+redis_client = redis.Redis(host='localhost', port=6379)
 
 def get_route_cache_key(source, dest):
     """

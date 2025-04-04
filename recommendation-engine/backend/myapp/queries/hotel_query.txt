@@ -1,0 +1,2 @@
+SELECT hotel_name, carbon_emission
+FROM hotel_emissions WHERE locations = 'Charlotte, NC' ORDER BY carbon_emission ASC LIMIT 5

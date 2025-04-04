@@ -1,0 +1,14 @@
+SELECT DISTINCT
+fe1.source_iata_code,
+fe1.destination_iata_code as layover,
+fe2.destination_iata_code as final_dest,
+fe1.flight_company as first_airline,
+fe2.flight_company as second_airline,
+(fe1.carbon_emission + fe2.carbon_emission) as total_carbon_emission
+FROM flight_emissions fe1
+JOIN flight_emissions fe2 
+    ON fe1.destination_iata_code = fe2.source_iata_code
+WHERE fe1.source_iata_code = 'XXX'
+AND fe2.destination_iata_code = 'YYY'
+AND fe2.destination_iata_code != fe1.source_iata_code
+ORDER BY total_carbon_emission ASC
