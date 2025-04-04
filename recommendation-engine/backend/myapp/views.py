@@ -10,6 +10,7 @@ from rest_framework.parsers import MultiPartParser
 import pandas as pd
 from .calculate_miles import calculate_distance, DistanceUnit
 from .cache import clear_route_cache
+import os
 
 # Create your views here.
 
@@ -50,7 +51,8 @@ def langchain_query(request):
             return Response({"error": "Source and destination are required"}, status=400)
         
         # Process the query with optional force refresh
-        result = process_query(source, dest, force_refresh=force_refresh)
+        # force_refresh=force_refresh
+        result = process_query(source, dest)
         
         return Response(result)
     except Exception as e:

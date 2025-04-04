@@ -1,6 +1,7 @@
 import requests
 import httpx
 import asyncio
+import time
 from langchain_community.utilities import SQLDatabase
 from langchain.chains import create_sql_query_chain
 from langchain_openai import ChatOpenAI
@@ -12,6 +13,7 @@ from .utils import get_gcd_correction,calculate_carbon_emission,kg_to_metric_ton
 import json
 from asgiref.sync import sync_to_async
 from .cache import cache_route_results, get_cache, set_cache, get_route_cache_key, clear_route_cache
+import os
 
 def get_enhanced_table_info_hotel(dest:str):
     base_info = db.get_table_info()
@@ -124,47 +126,77 @@ def suggest_alternative_routes(source: str, dest: str, llm) -> list:
         print(f"Error suggesting routes: {str(e)}")
         return []
 
+def read_direct_query(source:str,dest:str):
+    try:
+        template = None
+        with open('/Users/vengateshd/SustainableTravel/sustainable-travel/recommendation-engine/backend/myapp/queries/direct_flight_query.txt', 'r') as file:
+            template = file.read()
+        if template is None:
+            raise Exception("Error reading direct flight query")
+        query = template.replace('XXX',source).replace('YYY',dest)
+        return query
+    except Exception as e:
+        print(f"{str(e)}")
+    
+def read_indirect_query(source:str,dest:str):
+    try:
+        template = None
+        with open('/Users/vengateshd/SustainableTravel/sustainable-travel/recommendation-engine/backend/myapp/queries/indirect_flight_query.txt', 'r') as file:
+            template = file.read()
+        if template is None:
+            raise Exception("Error reading indirect flight query")
+        query = template.replace('XXX',source).replace('YYY',dest)
+        return query
+    except Exception as e:
+        print(f"{str(e)}")
+
 def create_sql_query(state: State, question: str, mode: str, source:str, dest: str):
     """Generate SQL query to fetch information."""
+    print("Inside create SQL query")
     try:
         if mode == "flight":
             # First, try direct routes
-            direct_question = (
-                f"Generate a SQL query that will find direct flights. "
-                f"{question}\n"
-                f"Important: Ensure the query includes DISTINCT, sorts by carbon_emission ASC, "
-                f"and uses the specified LIMIT."
-            )
-            prompt = query_prompt_template.invoke({
-                "dialect": db.dialect,
-                "top_k": 10,
-                "table_info": get_enhanced_table_info_flight(),
-                "input": direct_question
-            })
+            # direct_question = (
+            #     f"Generate a SQL query that will find direct flights. "
+            #     f"{question}\n"
+            #     f"Important: Ensure the query includes DISTINCT, sorts by carbon_emission ASC, "
+            #     f"and uses the specified LIMIT."
+            # )
+            # prompt = query_prompt_template.invoke({
+            #     "dialect": db.dialect,
+            #     "top_k": 10,
+            #     "table_info": get_enhanced_table_info_flight(),
+            #     "input": direct_question
+            # })
+
             
-            structured_llm = llm.with_structured_output(QueryOutput,method="function_calling")
-            result = structured_llm.invoke(prompt)
-            state["flight_query"] = result["query"]
+            # structured_llm = llm.with_structured_output(QueryOutput,method="function_calling")
+            # result = structured_llm.invoke(prompt)
+
+            # state["flight_query"] = result["query"]
+            result = read_direct_query(source,dest)
+            state["flight_query"] = result
             
             # Execute direct flight query
             execute_query_tool = QuerySQLDatabaseTool(db=db)
             direct_results = execute_query_tool.invoke(state["flight_query"])
             # If no direct flights found, try indirect routes
             if not direct_results or 'No results' in direct_results or direct_results.isspace():
-                indirect_question = (
-                    f"Generate a SQL query that will find indirect flights with one layover. "
-                    f"{question}\n"
-                    f"Important: Use the indirect routes template with JOIN operation. Make sure the new route's combined distance is comparable(within 500 miles) to direct flights."
-                )
+                # indirect_question = (
+                #     f"Generate a SQL query that will find indirect flights with one layover. "
+                #     f"{question}\n"
+                #     f"Important: Use the indirect routes template with JOIN operation. Make sure the new route's combined distance is comparable(within 500 miles) to direct flights."
+                # )
                 
-                prompt = query_prompt_template.invoke({
-                    "dialect": db.dialect,
-                    "top_k": 10,
-                    "table_info": get_enhanced_table_info_flight(),
-                    "input": indirect_question
-                })
-                result = structured_llm.invoke(prompt)
-                state["flight_query"] = result["query"]
+                # prompt = query_prompt_template.invoke({
+                #     "dialect": db.dialect,
+                #     "top_k": 10,
+                #     "table_info": get_enhanced_table_info_flight(),
+                #     "input": indirect_question
+                # })
+                result = read_indirect_query(source,dest)
+                # result = structured_llm.invoke(prompt)
+                state["flight_query"] = result
             state["route_type"] = "direct" if direct_results and 'No results' not in direct_results and not direct_results.isspace() else "indirect"
             print("Final Flight Query",state["flight_query"])
         else:
@@ -202,8 +234,11 @@ def create_sql_query(state: State, question: str, mode: str, source:str, dest: s
         print(f"Error in create_sql_query: {str(e)}")
         raise
 
-@cache_route_results
+# @cache_route_results
 def process_query(source: str, dest: str) -> dict:
+    base_dir = os.path.dirname(__file__)
+    print(base_dir)
+    print("inside process query")
     """
     Process a query for flights from source to destination
     
@@ -232,13 +267,17 @@ def process_query(source: str, dest: str) -> dict:
         )
         
         # Generate SQL queries
+        flight_query_start_time = time.time()
         create_sql_query(state, flight_question, "flight", source, dest)
+        flight_query_end_time = time.time()-flight_query_start_time
         create_sql_query(state, hotel_question, "hotel", source, dest)
-        
         # Execute queries
+        flight_execute_start_time = time.time()
         execute_query(state, "flight",source,dest)
+        flight_execute_end_time = time.time() - flight_execute_start_time
         execute_query(state, "hotel",source,dest)
-        
+        print("Query Creation time", flight_query_end_time)
+        print("Query Execution time", flight_execute_end_time)
         # Format the final question for generating the answer
         final_question = (
             f"Generate a sustainable travel itinerary for a trip from {source} to {dest} "
@@ -249,7 +288,11 @@ def process_query(source: str, dest: str) -> dict:
         )
         
         state["question"] = final_question
-        return generate_answer(state)
+        generate_answer_start = time.time()
+        answer = generate_answer(state)
+        generate_answer_end = time.time()
+        print("Generating answer time:",generate_answer_end-generate_answer_start)
+        return answer
         
     except Exception as e:
         print(f"Error in process_query: {str(e)}")

@@ -1,0 +1,1 @@
+SELECT DISTINCT source_iata_code, destination_iata_code, flight_company as airline, carbon_emission FROM flight_emissions WHERE source_iata_code = 'XXX' AND destination_iata_code = 'YYY' ORDER BY carbon_emission ASC LIMIT 5;
