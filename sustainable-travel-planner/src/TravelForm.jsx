@@ -501,9 +501,17 @@ const TravelForm = () => {
                         {flight.source_of_route && (
                           <p>
                             <strong>Source of Route:</strong>{' '}
-                            <a href={flight.source_of_route} target="_blank" rel="noopener noreferrer">
-                              {flight.source_of_route}
-                            </a>
+                            {flight.source_of_route === "DB" ? (
+                              flight.source_of_route
+                            ) : (
+                              <a
+                                href={flight.source_of_route}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {flight.source_of_route}
+                              </a>
+                            )}
                           </p>
                         )}
                         {flight.carbon_emission !== NaN && flight.carbon_emission !== 0 && (

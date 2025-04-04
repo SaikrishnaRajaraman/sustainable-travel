@@ -15,6 +15,9 @@ from asgiref.sync import sync_to_async
 from .cache import cache_route_results, get_cache, set_cache, get_route_cache_key, clear_route_cache
 import os
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+
 def get_enhanced_table_info_hotel(dest:str):
     base_info = db.get_table_info()
     routing_logic = """
@@ -129,7 +132,8 @@ def suggest_alternative_routes(source: str, dest: str, llm) -> list:
 def read_direct_query(source:str,dest:str):
     try:
         template = None
-        with open('/Users/vengateshd/SustainableTravel/sustainable-travel/recommendation-engine/backend/myapp/queries/direct_flight_query.txt', 'r') as file:
+        query_path = os.path.join(current_dir,'queries', 'direct_flight_query.txt')
+        with open(query_path, 'r') as file:
             template = file.read()
         if template is None:
             raise Exception("Error reading direct flight query")
@@ -141,7 +145,8 @@ def read_direct_query(source:str,dest:str):
 def read_indirect_query(source:str,dest:str):
     try:
         template = None
-        with open('/Users/vengateshd/SustainableTravel/sustainable-travel/recommendation-engine/backend/myapp/queries/indirect_flight_query.txt', 'r') as file:
+        query_path = os.path.join(current_dir,'queries', 'indirect_flight_query.txt')
+        with open(query_path, 'r') as file:
             template = file.read()
         if template is None:
             raise Exception("Error reading indirect flight query")
