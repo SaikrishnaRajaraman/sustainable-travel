@@ -15,4 +15,5 @@ urlpatterns = [
     path('api/calculatemiles/',views.upload_csv_file, name='calculatemiles'),
     path('api/cache/clear/', views.clear_cache, name='clear_cache'),
     path('api/task/<str:task_id>/', views.get_task_status, name='task_status')
+    path('api/airports/',views.airports,name='airports')
 ]

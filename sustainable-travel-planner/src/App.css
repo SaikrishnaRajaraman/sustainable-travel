@@ -18,7 +18,7 @@ body {
 }
 
 .light-mode .header {
-  background: #2ecc71; /* Primary green */
+  background: black; /* Primary green */
   color: white;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
@@ -132,7 +132,7 @@ body {
 .hero {
   background: linear-gradient(135deg, #2ecc71, #3498db); /* Green to blue gradient */
   color: white;
-  padding: 100px 20px;
+  padding: 5px 20px;
   text-align: center;
 }
 
@@ -681,4 +681,40 @@ input[type="file"] {
 /* Dark Mode Text */
 .dark-mode .miles-value, .dark-mode .emissions-value {
   color: #f5f5f5;
+}
+
+.modern-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-color);
+  transition: color 0.3s ease;
+}
+
+.dark-mode .modern-label {
+  color: var(--dark-text-color);
+}
+
+.input-group {
+  margin-bottom: 16px;
+}
+
+.badge.most-sustainable-badge {
+  background-color: #2ecc71;
+  color: white;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+.highlight-card {
+  border: 2px solid #2ecc71;
+  position: relative;
 }
