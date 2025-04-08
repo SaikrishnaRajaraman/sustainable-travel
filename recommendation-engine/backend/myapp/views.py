@@ -5,12 +5,14 @@ from .models import FlightData,Airport
 from .serializers import FlightDataSerializer
 from rest_framework.decorators import api_view, parser_classes
 from django.views.decorators.csrf import csrf_exempt
-from .langchain import process_query,process_bulk_csv
+# from .langchain import process_query,process_bulk_csv
+from .tasks import process_query_async, process_bulk_csv_async
 from rest_framework.parsers import MultiPartParser
 import pandas as pd
 from .calculate_miles import calculate_distance, DistanceUnit
 from .cache import clear_route_cache
 import os
+from celery.result import AsyncResult
 
 # Create your views here.
 
@@ -52,9 +54,14 @@ def langchain_query(request):
         
         # Process the query with optional force refresh
         # force_refresh=force_refresh
-        result = process_query(source, dest)
+        # result = process_query(source, dest)
+        task = process_query_async.delay(source,dest)
         
-        return Response(result)
+        return Response({
+            "task_id": task.id,
+            "status": "processing",
+            "message": "Query is being processed asynchronously"
+        })
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
@@ -90,9 +97,6 @@ def upload_csv_file(request):
                 (~df["Item Description"].str.contains("agent fee|baggage fee", case=False, na=False))  # Case-insensitive partial match
             ]
 
-            
-            
-
             print(df.info())
             print("\nSummary statistics:")
             print(df.describe(include="all"))
@@ -116,6 +120,24 @@ def upload_csv_file(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+    
+
+@csrf_exempt
+@api_view(['GET'])
+def airports(request):
+
+    try:
+        result = get_airport_iata_codes()
+        return Response({"response": result}, status=200)
+
+    except Exception as e:
+        print(e)
+        return Response({"error": str(e)}, status=500)
+
+
+
+
+
 
 @csrf_exempt
 @api_view(['POST'])
@@ -147,7 +169,41 @@ def clear_cache(request):
             return Response({"message": "No cache entries found matching the criteria"})
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+    
+@csrf_exempt
+@api_view(['GET'])
+def get_task_status(request, task_id):
+    """
+    Get the status and result of an asynchronous task
+    
+    URL parameters:
+        task_id: The ID of the task to check
+    """
+    try:
+        task_result = AsyncResult(task_id)
+        print(f"Task {task_id} status: {task_result.status}")
+        
+        response_data = {
+            'task_id': task_id,
+            'status': task_result.status,
+        }
+        
+        if task_result.ready():
+            if task_result.successful():
+                result = task_result.get()
+                response_data['status'] = result.get('status', 'SUCCESS')
+                if 'result' in result:
+                    response_data['result'] = result['result']
+                if 'error' in result:
+                    response_data['error'] = result['error']
+            else:
+                response_data['status'] = 'FAILURE'
+                response_data['error'] = str(task_result.result)
+        
+        return Response(response_data)
+    except Exception as e:
+        print(f"Error checking task status: {str(e)}")
+        return Response({"error": str(e)}, status=500)
 
 def home(request):
     return HttpResponse("Hello, world.")
-

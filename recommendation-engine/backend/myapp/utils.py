@@ -25,7 +25,7 @@ def calculate_carbon_emission(miles):
     #Average P/C = 82.53
     #2024 Load Factor = 83.39
     # Formula = CO2 emmissions = Fuel * (Passenger/Cargo Ratio / Total occupied seats) * Total Seats * 3.16
-    return fuel * (82.53/83.39) * 100 * 3.16
+    return fuel * (82.53/0.8339) * 3.16
 
 def miles_to_kms(miles):
     kms = miles * 1.60934

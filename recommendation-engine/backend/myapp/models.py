@@ -33,7 +33,7 @@ class Airport(models.Model):
 
     class Meta:
         managed = False  # This tells Django not to try to create or manage the table
-        db_table = 'airports'  # The name of your existing table
+        db_table = 'Airports'  # The name of your existing table
 
     def __str__(self):
         return f"{self.iata_code} - {self.airport_name}"

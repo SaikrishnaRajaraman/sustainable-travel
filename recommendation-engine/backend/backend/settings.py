@@ -158,3 +158,21 @@ CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 CORS_ALLOW_CREDENTIALS = True  # If using authentication
 
 CSRF_TRUSTED_ORIGINS = ["https://sustainable-travel-planner.onrender.com"]
+
+# Celery Configuration
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+# Remove any trailing slashes from the Redis URL
+REDIS_URL = REDIS_URL.rstrip('/')
+
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TASK_DEFAULT_QUEUE = 'celery'
+CELERY_TASK_CREATE_MISSING_QUEUES = True
+CELERY_TASK_ROUTES = {
+    'myapp.tasks.*': {'queue': 'celery'},
+}
